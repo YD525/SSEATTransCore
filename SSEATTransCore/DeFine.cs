@@ -12,5 +12,18 @@ namespace SSEATTransCore
         {
             Environment.Exit(-1);
         }
+        public static string GetFullPath(string Path)
+        {
+            string GetShellPath = System.Windows.Forms.Application.StartupPath;
+            if (GetShellPath.EndsWith(@"\"))
+            {
+                GetShellPath = GetShellPath.Substring(0, GetShellPath.Length - 1);
+            }
+            if (!Path.StartsWith(@"\"))
+            {
+                Path = @"\" + Path;
+            }
+            return GetShellPath + Path;
+        }
     }
 }
