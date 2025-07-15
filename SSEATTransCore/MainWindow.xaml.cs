@@ -70,11 +70,15 @@ namespace SSEATTransCore
 
             InitializeComponent();
 
+            this.Hide();
+
             if (CanShowWindows)
             {
                 this.Height = 650;
                 this.Width = 500;
                 this.ShowInTaskbar = true;
+
+                this.Show();
             }
 
             SetLog("Start WebService:" + "http://localhost:" + CurrentPort + "/SSEAT", DateTime.Now);
@@ -85,7 +89,8 @@ namespace SSEATTransCore
             if (IsDebug)
             {
                 this.Dispatcher.Invoke(new Action(() => {
-                    Log.Text += string.Format("{0}->{1}\n",Time.ToString("yyyy-MM-dd HH:mm:ss"),Str);
+                    Log.Text += string.Format("{0}->{1}\n", Time.ToString("yyyy-MM-dd HH:mm:ss"), Str);
+                    Log.ScrollToEnd();
                 }));
             }
         }
