@@ -1,0 +1,17 @@
+﻿<Window x:Class="SSEATTransCore.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SSEATTransCore"
+        mc:Ignorable="d"
+        Title="SSEATTransCore" Height="0" Width="0" WindowStartupLocation="CenterScreen" ShowInTaskbar="False">
+    <Grid Background="Black">
+        
+        <TextBox Margin="5" Name="Log" FontSize="13" IsReadOnly="True" SelectionBrush="#FF10A0FF" TextWrapping="Wrap" AcceptsReturn="True" Foreground="White" Background="{x:Null}" VerticalScrollBarVisibility="Auto" BorderBrush="{x:Null}" BorderThickness="0" CaretBrush="White">
+        
+        </TextBox>
+        
+
+    </Grid>
+</Window>
