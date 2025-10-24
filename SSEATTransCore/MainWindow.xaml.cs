@@ -88,6 +88,12 @@ namespace SSEATTransCore
                 }
             }
 
+            // Wire the HTTP callback once the window is created
+            ServerHelper.CallBack = (request, response) =>
+            {
+                var result = HandleRequest(request, response);
+                return JsonHelper.GetJson(result);
+            };
 
             InitializeComponent();
 
