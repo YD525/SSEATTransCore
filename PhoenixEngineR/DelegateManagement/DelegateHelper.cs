@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngineR.TranslateManage;
 
 namespace PhoenixEngine.DelegateManagement
 {
@@ -14,10 +15,10 @@ namespace PhoenixEngine.DelegateManagement
     //https://github.com/YD525/PhoenixEngine
     public class DelegateHelper
     {
-        public static SetData? SetDataCall = null;
+        public static SetData SetDataCall = null;
         public delegate void SetData(int Sign,object Any);
 
-        public static TranslationUnitCallBack? SetTranslationUnitCallBack = null;
+        public static TranslationUnitCallBack SetTranslationUnitCallBack = null;
         public delegate bool TranslationUnitCallBack(TranslationUnit Item);
 
         public static BookTranslateCallback SetBookTranslateCallback = null;

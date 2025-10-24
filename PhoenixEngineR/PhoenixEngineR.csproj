@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -94,6 +95,7 @@
     <Compile Include="TranslateManagement\JsonGeter.cs" />
     <Compile Include="TranslateManagement\LanguageHelper.cs" />
     <Compile Include="TranslateManagement\LocalDBCache.cs" />
+    <Compile Include="TranslateManagement\NativeBridge.cs" />
     <Compile Include="TranslateManagement\SpeechHelper.cs" />
     <Compile Include="TranslateManagement\TextSegmentTranslator.cs" />
     <Compile Include="TranslateManagement\TextTokenizer.cs" />

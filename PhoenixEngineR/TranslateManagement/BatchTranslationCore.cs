@@ -1,16 +1,17 @@
 ﻿
-using System.Diagnostics;
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.VisualBasic;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.SSELexiconBridge.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 
-namespace PhoenixEngine.TranslateManage
+namespace PhoenixEngineR.TranslateManage
 {
     // Copyright (c) 2025 YD525
     // Licensed under the MIT License.
@@ -283,7 +284,7 @@ namespace PhoenixEngine.TranslateManage
             // Compute Cumulative Similarity
             for (int I = 0; I < N; I++)
             {
-                var TokenSetA = TokensCache[I].ToHashSet();
+                var TokenSetA = new HashSet<string>(TokensCache[I]);
                 var RelatedIndices = new HashSet<int>();
                 foreach (var Token in TokenSetA)
                 {

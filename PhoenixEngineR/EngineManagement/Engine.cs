@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -9,10 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
-using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using PhoenixEngineR.RequestManagement;
+using PhoenixEngineR.TranslateManage;
 using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.EngineManagement
@@ -74,7 +76,7 @@ namespace PhoenixEngine.EngineManagement
 
         public static string GetFullPath(string Path)
         {
-            string GetShellPath = System.AppContext.BaseDirectory;
+            string GetShellPath = System.Windows.Forms.Application.StartupPath;
             if (GetShellPath.EndsWith(@"\"))
             {
                 if (Path.StartsWith(@"\"))
@@ -196,7 +198,7 @@ FROM (
                 return TranslationCore.UnitsToTranslate.Count;
             }
         }
-        public static TranslationUnit? DequeueTranslated(ref bool IsEnd)
+        public static TranslationUnit DequeueTranslated(ref bool IsEnd)
         {
             if (TranslationCore != null)
             {

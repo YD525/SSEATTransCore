@@ -5,6 +5,7 @@ using PhoenixEngine.EngineManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngineR.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.TranslateManage

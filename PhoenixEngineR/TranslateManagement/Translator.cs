@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngineR.TranslateManage;
 using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateManage
