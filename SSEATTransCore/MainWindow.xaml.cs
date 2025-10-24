@@ -111,7 +111,7 @@ namespace SSEATTransCore
             return new Result<Empty>(Code, Message, new Empty());
         }
 
-        //Test http://localhost:11152/SSEAT?Type=CloseService HttpGet 
+        //Process Http request and return 
         public object HandleRequest(HttpListenerRequest Request, HttpListenerResponse Response)
         {
             try
@@ -195,17 +195,14 @@ namespace SSEATTransCore
                             try
                             {
                                 var Form = Server.GetPostData(Request);
-
                                 //Post Payload
                                 string Original = Form["Original"];
-
-                                string To = Request.QueryString.Get("To");
 
                                 TranslationUnit NTranslationUnit = new TranslationUnit(Original.GetHashCode(), Original,
                                     "", Original,
                                     "", "",
                                     PhoenixEngine.TranslateCore.Languages.Auto,
-                                    LanguageHelper.FromLanguageCode(To),
+                                    Engine.To,
                                     100
                                     );
                                 NTranslationUnit.From = PhoenixEngine.TranslateCore.Languages.Auto;
@@ -222,11 +219,14 @@ namespace SSEATTransCore
                             }
                         }
                         break;
+                    //http://localhost:11152/SSEAT?Type=InitEngine
+                    //Must be called before working.
                     case "InitEngine":
                         {
                             Engine.Init();
                         }
                         break;
+                    //http://localhost:11152/SSEAT?Type=CloseService
                     case "CloseService":
                         {
                             if (Server.Listener != null)
