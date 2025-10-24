@@ -43,7 +43,7 @@ namespace SSEATTransCore
         public bool IsDebug = false;
         public int CurrentPort = 0;
 
-        //Test Args -Debug -SetPort 11152
+        //SSEATTransCore.exe -Debug -SetPort 11152
         public MainWindow()
         {
             Server = new ServerHelper();
@@ -58,9 +58,6 @@ namespace SSEATTransCore
             {
                 CommandLine += GetParam + " ";
             }
-
-            //-Debug 
-            //-SetPort 15230
 
             bool CanShowWindows = false;
 
@@ -84,6 +81,7 @@ namespace SSEATTransCore
 
                     CurrentPort = GetPort;
                     Server.Init(GetPort);
+
                     //Start WebService 
                     //http://localhost:Port/SSEAT HttpPost
                 }
@@ -106,6 +104,8 @@ namespace SSEATTransCore
             SetLog("Start WebService:" + "http://localhost:" + CurrentPort + "/SSEAT", DateTime.Now);
         }
 
+        //Json returned after general response request
+        //Json {code=1,xxxxxx}
         public object Return(int Code, string Message)
         {
             return new Result<Empty>(Code, Message, new Empty());
@@ -253,9 +253,14 @@ namespace SSEATTransCore
 
         #region Log
 
+        /// <summary>
+        /// Output debug information received request and response content
+        /// </summary>
+        /// <param name="Str"></param>
+        /// <param name="Time"></param>
         public void SetLog(string Str, DateTime Time)
         {
-            if (IsDebug)
+            if (IsDebug)//When executing the program, you must add the -Debug command line to be effective
             {
                 this.Dispatcher.Invoke(new Action(() =>
                 {
