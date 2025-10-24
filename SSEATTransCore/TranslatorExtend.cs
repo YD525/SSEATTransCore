@@ -192,7 +192,7 @@ namespace SSEATTransCore
 
         public static Dictionary<int, List<TranslatorHistoryCache>> TranslatorHistoryCaches = new Dictionary<int, List<TranslatorHistoryCache>>();
 
-        public static BatchTranslationCore? TranslationCore = null;
+        public static BatchTranslationCore TranslationCore = null;
         public static void ClearTranslatorHistoryCache()
         {
             RowStyleWin.RecordModifyStates.Clear();

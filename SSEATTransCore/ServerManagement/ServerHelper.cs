@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
+using PhoenixEngineR.TranslateManage;
 using SSEATTransCore.DelegateManagement;
 
 namespace SSEATTransCore.ServerManagement
@@ -122,6 +125,24 @@ namespace SSEATTransCore.ServerManagement
 
                 switch (GetType)
                 {
+                    case "TranslateV1":
+                        {
+                            string Original = Request.QueryString.Get("Original");
+                            string To = Request.QueryString.Get("To");
+                            TranslationUnit NTranslationUnit = new TranslationUnit(Original.GetHashCode(),Original,
+                                "", Original,
+                                "","",
+                                PhoenixEngine.TranslateCore.Languages.Auto,
+                                LanguageHelper.FromLanguageCode(To),
+                                100
+                                );
+                            NTranslationUnit.From = PhoenixEngine.TranslateCore.Languages.Auto;
+                            ;
+                            bool CanSleep = false;
+                            var GetResult = Translator.QuickTrans(NTranslationUnit,ref CanSleep);
+                            Return(1, GetResult);
+                        }
+                        break;
                     case "InitEngine":
                         {
                             Engine.Init();
