@@ -36,12 +36,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JsonCore">
-      <HintPath>..\JsonCore\bin\Debug\JsonCore.dll</HintPath>
-    </Reference>
-    <Reference Include="PhoenixEngineR">
-      <HintPath>..\PhoenixEngineR\bin\Debug\PhoenixEngineR.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net" />
@@ -111,6 +105,15 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\JsonCore\JsonCore.csproj">
+      <Project>{05A67774-A0E0-4C3C-AA2A-76AAD59B60AA}</Project>
+      <Name>JsonCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PhoenixEngineR\PhoenixEngineR.csproj">
+      <Project>{CB9439AA-4D74-4E16-9564-502A6844345E}</Project>
+      <Name>PhoenixEngineR</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
