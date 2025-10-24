@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Security.AccessControl;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
@@ -106,6 +107,11 @@ namespace SSEATTransCore
 
         //Json returned after general response request
         //Json {code=1,xxxxxx}
+
+        public object Return(int Code)
+        {
+            return Return(Code, string.Empty);
+        }
         public object Return(int Code, string Message)
         {
             return new Result<Empty>(Code, Message, new Empty());
@@ -114,6 +120,8 @@ namespace SSEATTransCore
         //Process Http request and return 
         public object HandleRequest(HttpListenerRequest Request, HttpListenerResponse Response)
         {
+            object Json = new object();
+
             try
             {
                 string GetType = Request.QueryString.Get("Type");
@@ -131,7 +139,7 @@ namespace SSEATTransCore
 
                             CurrentPexReader.LoadPexFile(Path);
 
-                            Return(1,JsonHelper.GetJson(CurrentPexReader.Strings));
+                            Json = Return(1,JsonHelper.GetJson(CurrentPexReader.Strings));
                         }
                         break;
                     //http://localhost:11152/SSEAT?Type=SetApiKey&PlatformType=ChatGpt&Enable=true (HTTP GET)
@@ -150,6 +158,8 @@ namespace SSEATTransCore
                             //    EngineConfig.ChatGptKey = ApiKey;
                             //EngineConfig.ChatGptApiEnable = Enable;
                             //}
+
+                            Json = Return(1);
                         }
                         break;
                     case "SetFromTo":
@@ -167,10 +177,10 @@ namespace SSEATTransCore
 
                             if (Engine.To == Languages.Null)
                             {
-                                Return(0, "Target language cannot be empty");
+                                Json = Return(0, "Target language cannot be empty");
                             }
 
-                            Return(1, string.Empty);
+                            Json = Return(1, string.Empty);
                         }
                         break;
                     case "SetSkyrimPath":
@@ -184,10 +194,10 @@ namespace SSEATTransCore
                             {
                                 SkyrimHelper.SkyrimPath = SkyrimPath;
 
-                                Return(1, SkyrimPath);
+                                Json = Return(1, SkyrimPath);
                             }
 
-                            Return(0, SkyrimPath);
+                            Json = Return(0, SkyrimPath);
                         }
                         break;
                     case "TranslateV1":
@@ -211,11 +221,11 @@ namespace SSEATTransCore
 
                                 var GetResult = Translator.QuickTrans(NTranslationUnit, ref CanSleep);
 
-                                Return(1, GetResult);
+                                Json = Return(1, GetResult);
                             }
                             catch (Exception Ex)
                             {
-                                Return(0, Ex.Message);
+                                Json = Return(0, Ex.Message);
                             }
                         }
                         break;
@@ -224,6 +234,7 @@ namespace SSEATTransCore
                     case "InitEngine":
                         {
                             Engine.Init();
+                            Json = Return(1);
                         }
                         break;
                     //http://localhost:11152/SSEAT?Type=CloseService
@@ -239,16 +250,27 @@ namespace SSEATTransCore
                                 }
                                 catch { }
                             }
-                            DeFine.ExitAny();
+
+                            new Thread(() => {
+                                Thread.Sleep(1000);
+                                DeFine.ExitAny();
+                            }).Start();
+
+                            Json = Return(1);
+                        }
+                        break;
+                    default:
+                        {
+                            Json = Return(-2);
                         }
                         break;
                 }
 
 
             }
-            catch { return Return(-2, "Http Server Error!"); }
+            catch { return Return(-3); }
 
-            return Return(-1, "RouteNotFound");
+            return Json;
         }
 
         #region Log
