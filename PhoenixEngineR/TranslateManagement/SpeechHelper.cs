@@ -1,30 +1,33 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.TranslateManagement
 {
     public static class SpeechHelper
     {
-        private static readonly object VoiceLock = new();
-        private static dynamic? VoiceInstance = null;
+        private static readonly object VoiceLock = new object();
+        private static dynamic VoiceInstance = null;
 
-        private static readonly Dictionary<Languages, string[]> VoiceHints = new()
-    {
-        { Languages.English, new[] { "English", "David", "Zira", "George" } },
-        { Languages.SimplifiedChinese, new[] { "Chinese", "Huihui", "Zh-cn" } },
-        { Languages.TraditionalChinese, new[] { "Chinese (Traditional)", "Zh-hk", "Zh-tw" } },
-        { Languages.Japanese, new[] { "Japanese", "Haruka", "Ja-jp" } },
-        { Languages.German, new[] { "German", "De-de" } },
-        { Languages.Korean, new[] { "Korean", "Heami", "Ko-kr" } },
-        { Languages.Turkish, new[] { "Turkish", "Tr-tr" } },
-        { Languages.Brazilian, new[] { "Portuguese", "Pt-br" } },
-        { Languages.Russian, new[] { "Russian", "Ru-ru" } },
-        { Languages.Italian, new[] { "Italian", "It-it" } },
-        { Languages.Spanish, new[] { "Spanish", "Es-es" } },
-        { Languages.Hindi, new[] { "Hindi", "Hi-in" } },
-        { Languages.Urdu, new[] { "Urdu", "Ur-pk" } },
-        { Languages.Indonesian, new[] { "Indonesian", "Id-id" } }
-    };
+        private static readonly Dictionary<Languages, string[]> VoiceHints = new Dictionary<Languages, string[]>()
+{
+    { Languages.English, new string[] { "English", "David", "Zira", "George" } },
+    { Languages.SimplifiedChinese, new string[] { "Chinese", "Huihui", "Zh-cn" } },
+    { Languages.TraditionalChinese, new string[] { "Chinese (Traditional)", "Zh-hk", "Zh-tw" } },
+    { Languages.Japanese, new string[] { "Japanese", "Haruka", "Ja-jp" } },
+    { Languages.German, new string[] { "German", "De-de" } },
+    { Languages.Korean, new string[] { "Korean", "Heami", "Ko-kr" } },
+    { Languages.Turkish, new string[] { "Turkish", "Tr-tr" } },
+    { Languages.Brazilian, new string[] { "Portuguese", "Pt-br" } },
+    { Languages.Russian, new string[] { "Russian", "Ru-ru" } },
+    { Languages.Italian, new string[] { "Italian", "It-it" } },
+    { Languages.Spanish, new string[] { "Spanish", "Es-es" } },
+    { Languages.Hindi, new string[] { "Hindi", "Hi-in" } },
+    { Languages.Urdu, new string[] { "Urdu", "Ur-pk" } },
+    { Languages.Indonesian, new string[] { "Indonesian", "Id-id" } }
+};
 
         public static void TryPlaySound(string Text,bool CanCreatTrd = false)
         {
@@ -54,8 +57,8 @@ namespace PhoenixEngine.TranslateManagement
 
                                 foreach (var Hint in Hints)
                                 {
-                                    if (Desc.Contains(Hint, StringComparison.OrdinalIgnoreCase) ||
-                                        LangAttr.Contains(Hint, StringComparison.OrdinalIgnoreCase))
+                                    if (Desc.ToLower().Contains(Hint.ToLower()) ||
+                                    LangAttr.ToLower().Contains(Hint.ToLower()))
                                     {
                                         BestMatch = Token;
                                         break;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -48,7 +49,7 @@ namespace PhoenixEngine.FileManagement
         /// <returns>Array of CRC32 hashes (hex string) for each block</returns>
         public static string[] GetBlockCRC32(string FilePath, int TargetBlockCount = 500, int BufferSize = 4 * 1024 * 1024)
         {
-            using var Stream = File.OpenRead(FilePath);
+            var Stream = File.OpenRead(FilePath);
             long FileSize = Stream.Length;
             long BlockSize = Math.Max(1, FileSize / TargetBlockCount);
 
@@ -116,8 +117,10 @@ namespace PhoenixEngine.FileManagement
         /// <summary>
         /// Split a joined hash string back into an array.
         /// </summary>
-        public static string[] SplitHashes(string Joined) =>
-            Joined.Split('|', StringSplitOptions.RemoveEmptyEntries);
+        public static string[] SplitHashes(string Joined)
+        {
+            return Joined.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+        }
 
 
         public static bool MatchFile(string Key1, string Key2)

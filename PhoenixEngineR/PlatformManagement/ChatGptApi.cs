@@ -1,11 +1,10 @@
-﻿using System.Net;
-using System.Text.Json;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DelegateManagement;
+﻿using System.Collections.Generic;
+using System.Net;
+using JsonCore;
 using PhoenixEngine.EngineManagement;
-using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngineR.RequestManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 using static PhoenixEngine.TranslateManage.TransCore;
 
@@ -32,7 +31,7 @@ namespace PhoenixEngine.PlatformManagement
 
     public class ChatGptApi
     {
-        public ChatGptRootobject? CallAI(string Msg,ref string Recv)
+        public ChatGptRootobject CallAI(string Msg,ref string Recv)
         {
             int GetCount = Msg.Length; 
             ChatGptItem NChatGptItem = new ChatGptItem();
@@ -68,10 +67,10 @@ namespace PhoenixEngine.PlatformManagement
 
             string GetResult = new HttpHelper().GetHtml(Http).Html;
         }
-        public ChatGptRootobject? CallAI(ChatGptItem Item,ref string Recv)
+        public ChatGptRootobject CallAI(ChatGptItem Item,ref string Recv)
         {
             //GetModes();
-            string GetJson = JsonSerializer.Serialize(Item);
+            string GetJson = JsonHelper.GetJson(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.ChatGptKey));
             HttpItem Http = new HttpItem()
@@ -98,7 +97,7 @@ namespace PhoenixEngine.PlatformManagement
             Recv = GetResult;
             try
             {    
-                return JsonSerializer.Deserialize<ChatGptRootobject>(GetResult);
+                return JsonHelper.ProcessToJson<ChatGptRootobject>(GetResult);
             }
             catch 
             {

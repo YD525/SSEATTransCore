@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 
@@ -24,6 +26,12 @@ namespace PhoenixEngine.TranslateManagement
 
         public const int MaxGram = 3 + 1;
 
+        private class TokenWithIndex
+        {
+            public string Token;
+            public int Index;
+        }
+
         public static string[] Tokenize(Languages Lang, string Text)
         {
             Text = Text.Replace('_', ' ').Replace('-', ' ');
@@ -31,33 +39,53 @@ namespace PhoenixEngine.TranslateManagement
             if (Lang.IsSpaceDelimitedLanguage())
             {
                 Text = Regex.Replace(Text, "(?<!^)([A-Z])", " $1");
-                var tokens = Text.Split(new[] { ' ', '.', ',', '?', '!', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\'' },
+                string[] tokens = Text.Split(new[] { ' ', '.', ',', '?', '!', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\'' },
                     StringSplitOptions.RemoveEmptyEntries);
 
-                return tokens
-                    .Where(t => t.Length > 1)
-                    .Where(t => !(Lang == Languages.English && EnglishStopWords.Contains(t)))
-                    .ToArray();
+                List<string> resultTokens = new List<string>();
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    string t = tokens[i];
+                    if (t.Length > 1 && !(Lang == Languages.English && EnglishStopWords.Contains(t)))
+                    {
+                        resultTokens.Add(t);
+                    }
+                }
+
+                return resultTokens.ToArray();
             }
 
             if (!Lang.IsNoSpaceLanguage())
             {
-                return Text.Split(new[] { ' ', '.', ',', '?', '!', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\'' },
-                    StringSplitOptions.RemoveEmptyEntries)
-                    .Where(t => t.Length > 1)
-                    .ToArray();
+                string[] tokens = Text.Split(new[] { ' ', '.', ',', '?', '!', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\'' },
+                    StringSplitOptions.RemoveEmptyEntries);
+
+                List<string> resultTokens = new List<string>();
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    string t = tokens[i];
+                    if (t.Length > 1)
+                        resultTokens.Add(t);
+                }
+
+                return resultTokens.ToArray();
             }
 
-            List<(string Token, int Index)> TokensWithIndex = new();
+            List<TokenWithIndex> TokensWithIndex = new List<TokenWithIndex>();
             for (int I = 0; I < Text.Length; I++)
             {
-                TokensWithIndex.Add((" " + Text[I] + " ", I));
+                TokensWithIndex.Add(new TokenWithIndex { Token = " " + Text[I] + " ", Index = I });
             }
 
-            List<string> Result = new();
+            List<string> Result = new List<string>();
+            string[] SingleTokens = new string[TokensWithIndex.Count];
+            int[] Indices = new int[TokensWithIndex.Count];
 
-            string[] SingleTokens = TokensWithIndex.Select(T => T.Token).ToArray();
-            int[] Indices = TokensWithIndex.Select(T => T.Index).ToArray();
+            for (int i = 0; i < TokensWithIndex.Count; i++)
+            {
+                SingleTokens[i] = TokensWithIndex[i].Token;
+                Indices[i] = TokensWithIndex[i].Index;
+            }
 
             for (int I = 0; I < SingleTokens.Length; I++)
             {
@@ -74,7 +102,7 @@ namespace PhoenixEngine.TranslateManagement
                     }
                     if (!IsContinuous) continue;
 
-                    var TokenSb = new System.Text.StringBuilder();
+                    System.Text.StringBuilder TokenSb = new System.Text.StringBuilder();
                     for (int K = I; K < I + Len; K++)
                     {
                         TokenSb.Append(SingleTokens[K]);

@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.FileManagement;
@@ -276,7 +271,7 @@ CREATE TABLE [UniqueKeys](
         /// </summary>
         /// <param name="Rowid">The Rowid of the record in the UniqueKeys table (primary key).</param>
         /// <returns>The matching UniqueKeyItem if found; otherwise, null.</returns>
-        public UniqueKeyItem? QueryUniqueKey(int Rowid)
+        public UniqueKeyItem QueryUniqueKey(int Rowid)
         {
             string SqlOrder = "Select Rowid,* From UniqueKeys Where Rowid = {0}";
             DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder,Rowid));

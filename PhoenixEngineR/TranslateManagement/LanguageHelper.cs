@@ -1,4 +1,6 @@
 ﻿
+using System;
+using System.Collections.Generic;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.LanguageDetector;
 using PhoenixEngine.PlatformManagement.LocalAI;
@@ -19,33 +21,33 @@ namespace PhoenixEngine.TranslateCore
     }
     public static class LanguageConverter
     {
-        private static readonly Dictionary<Languages, string> LanguageCodeMap = new()
-        {
-            [Languages.English] = "en",
-            [Languages.SimplifiedChinese] = "zh-CN",
-            [Languages.TraditionalChinese] = "zh-TW",
-            [Languages.Japanese] = "ja",
-            [Languages.German] = "de",
-            [Languages.Korean] = "ko",
-            [Languages.Turkish] = "tr",
-            [Languages.Brazilian] = "pt-BR",
-            [Languages.Portuguese] = "pt",
-            [Languages.Russian] = "ru",
-            [Languages.Ukrainian] = "uk",
-            [Languages.Italian] = "it",
-            [Languages.Spanish] = "es",
-            [Languages.Hindi] = "hi",
-            [Languages.Urdu] = "ur",
-            [Languages.Indonesian] = "id",
-            [Languages.French] = "fr",
-            [Languages.CanadianFrench] = "fr-CA",
-            [Languages.Vietnamese] = "vi",
-            [Languages.Polish] = "pl",
-            [Languages.Auto] = "auto",
-            [Languages.Null] = ""
-        };
+        private static readonly Dictionary<Languages, string> LanguageCodeMap = new Dictionary<Languages, string>()
+{
+    { Languages.English, "en" },
+    { Languages.SimplifiedChinese, "zh-CN" },
+    { Languages.TraditionalChinese, "zh-TW" },
+    { Languages.Japanese, "ja" },
+    { Languages.German, "de" },
+    { Languages.Korean, "ko" },
+    { Languages.Turkish, "tr" },
+    { Languages.Brazilian, "pt-BR" },
+    { Languages.Portuguese, "pt" },
+    { Languages.Russian, "ru" },
+    { Languages.Ukrainian, "uk" },
+    { Languages.Italian, "it" },
+    { Languages.Spanish, "es" },
+    { Languages.Hindi, "hi" },
+    { Languages.Urdu, "ur" },
+    { Languages.Indonesian, "id" },
+    { Languages.French, "fr" },
+    { Languages.CanadianFrench, "fr-CA" },
+    { Languages.Vietnamese, "vi" },
+    { Languages.Polish, "pl" },
+    { Languages.Auto, "auto" },
+    { Languages.Null, "" }
+};
 
-        private static readonly Dictionary<string, Languages> CodeToLanguageMap = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, Languages> CodeToLanguageMap = new Dictionary<string, Languages>(StringComparer.OrdinalIgnoreCase);
         static LanguageConverter()
         {
             foreach (var pair in LanguageCodeMap)
@@ -92,36 +94,60 @@ namespace PhoenixEngine.TranslateCore
         {
             LMStudio NewLMAI = new LMStudio();
 
-            var Names = Enum.GetNames(typeof(Languages))
-                       .Where(n => n != nameof(Languages.Null) && n != nameof(Languages.Auto))
-                       .ToArray();
-            var EnumNames = string.Join(", ", Names);
+            string[] Names = Enum.GetNames(typeof(Languages));
+            List<string> FilteredNames = new List<string>();
+            for (int i = 0; i < Names.Length; i++)
+            {
+                if (Names[i] != "Null" && Names[i] != "Auto")
+                    FilteredNames.Add(Names[i]);
+            }
 
-            var Prompt = $"Identify which language the following text belongs to.\nOnly return one of the enum names from this list, and nothing else:\n{EnumNames}\nText: \"" + Source + "\"";
+            string EnumNames = string.Join(", ", FilteredNames.ToArray());
 
-            var ReturnJson = "";
-            var GetResult = NewLMAI.CallAI(Prompt, ref ReturnJson);
+            string Prompt = "Identify which language the following text belongs to.\r\nOnly return one of the enum names from this list, and nothing else:\r\n" + EnumNames + "\r\nText: \"" + Source + "\"";
+
+            string ReturnJson = "";
+            object GetResult = NewLMAI.CallAI(Prompt, ref ReturnJson);
 
             string GetStr = "";
 
             if (GetResult != null)
             {
-                if (GetResult.choices != null)
+                var choicesProp = GetResult.GetType().GetProperty("choices");
+                if (choicesProp != null)
                 {
-                    if (GetResult.choices.Length > 0)
+                    Array choicesArray = choicesProp.GetValue(GetResult, null) as Array;
+                    if (choicesArray != null && choicesArray.Length > 0)
                     {
-                        GetStr = GetResult.choices[0].message.content.Trim();
+                        object firstChoice = choicesArray.GetValue(0);
+                        var messageProp = firstChoice.GetType().GetProperty("message");
+                        if (messageProp != null)
+                        {
+                            object messageObj = messageProp.GetValue(firstChoice, null);
+                            if (messageObj != null)
+                            {
+                                var contentProp = messageObj.GetType().GetProperty("content");
+                                if (contentProp != null)
+                                {
+                                    object contentVal = contentProp.GetValue(messageObj, null);
+                                    if (contentVal != null)
+                                        GetStr = contentVal.ToString().Trim();
+                                }
+                            }
+                        }
                     }
-                    if (GetStr.Trim().Length > 0)
-                    {
-                        GetStr = JsonGeter.GetValue(GetStr);
-                    }
+                }
+
+                if (!string.IsNullOrEmpty(GetStr))
+                {
+                    GetStr = JsonGeter.GetValue(GetStr);
                 }
             }
 
-            if (Enum.TryParse(typeof(Languages), GetStr, ignoreCase: true, out var Result))
+            Languages ResultObj;
+            if (Enum.TryParse<Languages>(GetStr,out ResultObj))
             {
-                return (Languages)Result;
+                return (Languages)ResultObj;
             }
 
             return Languages.Null;
@@ -134,12 +160,12 @@ namespace PhoenixEngine.TranslateCore
 
             if (EnglishHelper.IsProbablyEnglish(Str)) //100%
             {
-                OneDetect.Add(Languages.English,0.01);
+                OneDetect.Add(Languages.English, 0.01);
             }
 
             if (RussianHelper.ContainsRussian(Str)) //100%
             {
-                OneDetect.Add(Languages.Russian,0.02); 
+                OneDetect.Add(Languages.Russian, 0.02);
             }
 
             if (UkrainianHelper.IsProbablyUkrainian(Str))
@@ -205,7 +231,7 @@ namespace PhoenixEngine.TranslateCore
             {
                 OneDetect.Add(Languages.Spanish, SpanishHelper.GetSpanishScore(Str));
             }
-           
+
             if (PolishHelper.IsProbablyPolish(Str))
             {
                 OneDetect.Add(Languages.Polish, PolishHelper.GetPolishScore(Str));
@@ -218,22 +244,22 @@ namespace PhoenixEngine.TranslateCore
 
             if (HindiHelper.IsProbablyHindi(Str))
             {
-                OneDetect.Add(Languages.Hindi,HindiHelper.GetHindiScore(Str));
+                OneDetect.Add(Languages.Hindi, HindiHelper.GetHindiScore(Str));
             }
 
             if (UrduHelper.IsProbablyUrdu(Str))
             {
-                OneDetect.Add(Languages.Urdu,UrduHelper.GetUrduScore(Str));
+                OneDetect.Add(Languages.Urdu, UrduHelper.GetUrduScore(Str));
             }
 
             if (IndonesianHelper.IsProbablyIndonesian(Str))
             {
-                OneDetect.Add(Languages.Indonesian,IndonesianHelper.GetIndonesianScore(Str));
+                OneDetect.Add(Languages.Indonesian, IndonesianHelper.GetIndonesianScore(Str));
             }
 
             if (VietnameseHelper.IsProbablyVietnamese(Str))
             {
-                OneDetect.Add(Languages.Vietnamese,VietnameseHelper.GetVietnameseScore(Str));
+                OneDetect.Add(Languages.Vietnamese, VietnameseHelper.GetVietnameseScore(Str));
             }
 
             if (OneDetect.Array.Count == 0)
@@ -263,7 +289,7 @@ namespace PhoenixEngine.TranslateCore
                 return LanguageDetectItem.GetMaxLang();
             }
         }
-       
+
 
         public static Languages DetectLanguageByContent(string Text)
         {
@@ -296,7 +322,7 @@ namespace PhoenixEngine.TranslateCore
                 }
             }
 
-            public void Add(Languages Lang,double Ratio)
+            public void Add(Languages Lang, double Ratio)
             {
                 if (Array.ContainsKey(Lang))
                 {
@@ -313,10 +339,21 @@ namespace PhoenixEngine.TranslateCore
             {
                 if (Array.Count > 0)
                 {
-                    return Array
-                      .OrderByDescending(kv => kv.Value)
-                      .First().Key;
+                    Languages maxKey = Languages.English;
+                    double maxValue = double.MinValue;
+
+                    foreach (KeyValuePair<Languages, double> kv in Array)
+                    {
+                        if (kv.Value > maxValue)
+                        {
+                            maxValue = kv.Value;
+                            maxKey = kv.Key;
+                        }
+                    }
+
+                    return maxKey;
                 }
+
                 return Languages.English;
             }
         }

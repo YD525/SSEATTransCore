@@ -403,7 +403,7 @@ namespace PhoenixEngineR.TranslateManage
         }
 
         public CancellationTokenSource TransMainTrdCancel = null;
-        public Thread? TransMainTrd = null;
+        public Thread TransMainTrd = null;
 
         public void CancelMainTransThread()
         {
@@ -443,7 +443,7 @@ namespace PhoenixEngineR.TranslateManage
                     }
                     else
                     {
-                        FileLanguageDetect? LangDetecter = new FileLanguageDetect();
+                        FileLanguageDetect LangDetecter = new FileLanguageDetect();
 
                         for (int i = 0; i < this.UnitsToTranslate.Count; i++)
                         {
@@ -656,7 +656,7 @@ namespace PhoenixEngineR.TranslateManage
             }
         }
 
-        public TranslationUnit? DequeueTranslated(out bool IsEnd)
+        public TranslationUnit DequeueTranslated(out bool IsEnd)
         {
             lock (UnitsTranslatedLocker)
             {

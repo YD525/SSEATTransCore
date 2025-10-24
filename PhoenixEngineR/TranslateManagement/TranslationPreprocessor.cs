@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
@@ -110,9 +111,19 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            string Residual = UseWordBoundary
-                ? Regex.Replace(SourceStr, @"__\(\d+\)__", "")
-                : ReplaceTags.Aggregate(SourceStr, (str, tag) => str.Replace(tag.Key, ""));
+            string Residual = null;
+            if (UseWordBoundary)
+            {
+                Residual = Regex.Replace(SourceStr, @"__\(\d+\)__", "");
+            }
+            else
+            {
+                Residual = SourceStr;
+                for (int i = 0; i < ReplaceTags.Count; i++)
+                {
+                    Residual = Residual.Replace(ReplaceTags[i].Key, "");
+                }
+            }
 
             NeedFurtherTranslate = !string.IsNullOrWhiteSpace(Residual.Trim());
 
@@ -150,7 +161,15 @@ namespace PhoenixEngine.TranslateManage
 
                         if (MatchedKey != null)
                         {
-                            string Replacement = ReplaceTags.First(Tag => Tag.Key == MatchedKey).Value;
+                            string Replacement = null;
+                            for (int i = 0; i < ReplaceTags.Count; i++)
+                            {
+                                if (ReplaceTags[i].Key == MatchedKey)
+                                {
+                                    Replacement = ReplaceTags[i].Value;
+                                    break;
+                                }
+                            }
                             Result.Append(Replacement);
                             I = J + 3;
                             continue;
@@ -172,7 +191,7 @@ namespace PhoenixEngine.TranslateManage
                    lang == Languages.Italian ||
                    lang == Languages.Spanish;
         }
-        private string? FindBestMatchingPlaceholder(string Input)
+        private string FindBestMatchingPlaceholder(string Input)
         {
             foreach (var Tag in ReplaceTags)
             {

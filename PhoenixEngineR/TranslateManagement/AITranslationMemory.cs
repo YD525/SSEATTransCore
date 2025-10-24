@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.ObjectiveC;
-using System.Text;
+﻿using System.Collections.Generic;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 
@@ -114,9 +113,30 @@ namespace PhoenixEngine.TranslateManage
                     }
                 }
 
-                List<string> GetContexts = RelevanceMap.OrderByDescending(kvp => kvp.Value)
-                    .Select(kvp => $"{kvp.Key} -> {_TranslationDictionary[kvp.Key]}")
-                    .ToList();
+                List<KeyValuePair<string, int>> kvList = new List<KeyValuePair<string, int>>();
+                foreach (KeyValuePair<string, int> kv in RelevanceMap)
+                {
+                    kvList.Add(kv);
+                }
+
+                for (int i = 0; i < kvList.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < kvList.Count; j++)
+                    {
+                        if (kvList[i].Value < kvList[j].Value)
+                        {
+                            KeyValuePair<string, int> temp = kvList[i];
+                            kvList[i] = kvList[j];
+                            kvList[j] = temp;
+                        }
+                    }
+                }
+
+                List<string> GetContexts = new List<string>();
+                for (int i = 0; i < kvList.Count; i++)
+                {
+                    GetContexts.Add(kvList[i].Key + " -> " + _TranslationDictionary[kvList[i].Key]);
+                }
 
                 TrimListByCharCount(ref GetContexts, ContextLength);
 

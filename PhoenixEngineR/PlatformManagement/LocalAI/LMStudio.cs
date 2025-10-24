@@ -1,11 +1,10 @@
-﻿using System.Net;
-using System.Text.Json;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DelegateManagement;
+﻿using System.Collections.Generic;
+using System.Net;
+using JsonCore;
 using PhoenixEngine.EngineManagement;
-using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngineR.RequestManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 using static PhoenixEngine.PlatformManagement.LocalAI.LocalAIJson;
 using static PhoenixEngine.TranslateManage.TransCore;
@@ -14,7 +13,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 {
     public class LMStudio
     {
-        public OpenAIResponse? CallAI(string Msg,ref string Recv)
+        public OpenAIResponse CallAI(string Msg,ref string Recv)
         {
             int GetCount = Msg.Length;
             OpenAIItem NOpenAIItem = new OpenAIItem(EngineConfig.LMModel);
@@ -24,10 +23,10 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             return GetResult;
         }
 
-        public OpenAIResponse? CallAI(OpenAIItem Item,ref string Recv)
+        public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
             string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + "/v1/chat/completions";
-            string GetJson = JsonSerializer.Serialize(Item);
+            string GetJson = JsonHelper.GetJson(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
             HttpItem Http = new HttpItem()
@@ -54,7 +53,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             Recv = GetResult;
             try
             {
-                return JsonSerializer.Deserialize<OpenAIResponse>(GetResult);
+                return JsonHelper.ProcessToJson<OpenAIResponse>(GetResult);
             }
             catch
             {

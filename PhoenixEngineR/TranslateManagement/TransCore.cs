@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+using System.Threading;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
@@ -143,7 +145,7 @@ namespace PhoenixEngine.TranslateManage
                 return GetCacheStr;
             }
 
-            EngineSelect? CurrentEngine = null;
+            EngineSelect CurrentEngine = null;
 
             while (CurrentEngine == null)
             {
@@ -338,7 +340,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
                     else
-                    if (this.TransEngine is CohereApi || this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is BaichuanApi || this.TransEngine is LMStudio)
+                    if (this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is BaichuanApi || this.TransEngine is LMStudio)
                     {
                         bool CanTrans = false;
 
