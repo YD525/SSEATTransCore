@@ -9,6 +9,7 @@ namespace SSEATTransCore.SkyrimManagement
 {
     public class SkyrimHelper
     {
+        public static string SkyrimPath = "";
         public static bool FindPapyrusCompilerPath(ref string CompilerPathPtr)
         {
             if (File.Exists(DeFine.GetFullPath(@"Tool\Original Compiler\PapyrusAssembler.exe")))
@@ -16,13 +17,13 @@ namespace SSEATTransCore.SkyrimManagement
                 CompilerPathPtr = DeFine.GetFullPath(@"Tool\Original Compiler\PapyrusAssembler.exe");
                 return true;
             }
-            if (Directory.Exists(DeFine.GlobalLocalSetting.SkyrimPath))
+            if (Directory.Exists(SkyrimPath))
             {
-                if (!DeFine.GlobalLocalSetting.SkyrimPath.EndsWith(@"\"))
+                if (!SkyrimPath.EndsWith(@"\"))
                 {
-                    DeFine.GlobalLocalSetting.SkyrimPath += @"\";
+                    SkyrimPath += @"\";
                 }
-                string SetPapyrusAssemblerPath = DeFine.GlobalLocalSetting.SkyrimPath + "Papyrus Compiler" + @"\PapyrusAssembler.exe";
+                string SetPapyrusAssemblerPath = SkyrimPath + "Papyrus Compiler" + @"\PapyrusAssembler.exe";
                 if (File.Exists(SetPapyrusAssemblerPath))
                 {
                     CompilerPathPtr = SetPapyrusAssemblerPath;

@@ -30,6 +30,8 @@ namespace SSEATTransCore
         {
             Server = new ServerHelper();
 
+            TranslatorExtend.Init();
+
             string[] Args = Environment.GetCommandLineArgs();
             string CommandLine = "";
             foreach (var GetParam in Args)

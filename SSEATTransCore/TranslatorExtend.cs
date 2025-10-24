@@ -16,11 +16,21 @@ namespace SSEATTransCore
 {
     public class TranslatorExtend
     {
+        /// <summary>
+        /// Here is a callback function that gets the object being translated and whether translation is allowed. True allows, false cancels.
+        /// </summary>
+        /// <param name="Item"></param>
+        /// <returns></returns>
+        public static bool TranslationUnitStartWorkCall(TranslationUnit Item)
+        {
+            return true;
+        }
         public static void Init()
         {
             DelegateHelper.SetDataCall += Recv;
             DelegateHelper.SetTranslationUnitCallBack += TranslationUnitStartWorkCall;
 
+            //The node currently used for translation.
             RegListener("PreLog", new List<int>() { 2 }, new Action<int, object>((Sign, Any) =>
             {
                 if (Sign == 2)
@@ -29,22 +39,24 @@ namespace SSEATTransCore
                     {
                         PreTranslateCall GetCall = (PreTranslateCall)Any;
 
-                        UIHelper.NodeCallCallback(GetCall.Platform);
+                        //UIHelper.NodeCallCallback(GetCall.Platform);
                     }
                 }
             }));
 
+            //Various output messages
             RegListener("MainLog", new List<int>() { 0 }, new Action<int, object>((Sign, Any) =>
             {
                 if (Sign == 0)
                 {
                     if (Any is string)
                     {
-                        LogHelper.SetMainLog((string)Any);
+                        //LogHelper.SetMainLog((string)Any);
                     }
                 }
             }));
 
+            //Json returned by each interface
             RegListener("InputOutputLog", new List<int>() { 3, 5 }, new Action<int, object>((Sign, Any) =>
             {
                 if (Sign == 5 || Sign == 3)
@@ -53,54 +65,27 @@ namespace SSEATTransCore
                     {
                         AICall GetCall = (AICall)Any;
 
-                        UIHelper.NodeCallCallback(GetCall.Platform);
+                        //UIHelper.NodeCallCallback(GetCall.Platform);
 
-                        LogHelper.SetInputLog(GetCall.Platform.ToString() + "->\n" + GetCall.SendString);
-                        LogHelper.SetOutputLog(GetCall.Platform.ToString() + "->\n" + GetCall.ReceiveString);
+                        //LogHelper.SetInputLog(GetCall.Platform.ToString() + "->\n" + GetCall.SendString);
+                        //LogHelper.SetOutputLog(GetCall.Platform.ToString() + "->\n" + GetCall.ReceiveString);
 
-                        DashBoardService.TokenStatistics(GetCall.Platform, GetCall.SendString, GetCall.ReceiveString);
+                        //DashBoardService.TokenStatistics(GetCall.Platform, GetCall.SendString, GetCall.ReceiveString);
                     }
                     if (Any is PlatformCall)
                     {
                         PlatformCall GetCall = (PlatformCall)Any;
 
-                        UIHelper.NodeCallCallback(GetCall.Platform);
+                        //UIHelper.NodeCallCallback(GetCall.Platform);
 
-                        LogHelper.SetInputLog(GetCall.Platform.ToString() + "->\n" + GetCall.SendString);
-                        LogHelper.SetOutputLog(GetCall.Platform.ToString() + "->\n" + GetCall.ReceiveString);
+                        //LogHelper.SetInputLog(GetCall.Platform.ToString() + "->\n" + GetCall.SendString);
+                        //LogHelper.SetOutputLog(GetCall.Platform.ToString() + "->\n" + GetCall.ReceiveString);
                     }
                 }
             }));
         }
 
-        /// <summary>
-        /// Protect the translation object being entered by the user from being changed
-        /// </summary>
-        /// <param name="Item"></param>
-        /// <returns></returns>
-        public static bool TranslationUnitStartWorkCall(TranslationUnit Item)
-        {
-            if (DeFine.WorkingWin != null)
-            {
-                if (DeFine.WorkingWin.TransViewList != null)
-                {
-                    FakeGrid? QueryGrid = DeFine.WorkingWin.TransViewList.KeyToFakeGrid(Item.Key);
-
-                    if (QueryGrid != null)
-                    {
-                        bool IsCloud = false;
-                        QueryGrid.SyncData(ref IsCloud);
-
-                        if (QueryGrid.TransText.Length > 0)
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
+        
 
         public class RecvListener
         {
@@ -179,25 +164,9 @@ namespace SSEATTransCore
             });
         }
 
-        public static void LogCall(string Log)
-        {
-            if (DeFine.WorkingWin != null)
-            {
-                DeFine.WorkingWin.Dispatcher.Invoke(new Action(() =>
-                {
-                    DeFine.WorkingWin.MainLog.Text = Log;
-                }));
-            }
-        }
-
         public static Dictionary<int, List<TranslatorHistoryCache>> TranslatorHistoryCaches = new Dictionary<int, List<TranslatorHistoryCache>>();
 
         public static BatchTranslationCore TranslationCore = null;
-        public static void ClearTranslatorHistoryCache()
-        {
-            RowStyleWin.RecordModifyStates.Clear();
-            TranslatorHistoryCaches.Clear();
-        }
 
         public static void SetTranslatorHistoryCache(string Key, string Translated, bool IsCloud)
         {
@@ -225,306 +194,21 @@ namespace SSEATTransCore
             return null;
         }
 
-        public static void SetTransBarTittle(string Log)
-        {
-            if (DeFine.WorkingWin != null)
-            {
-                DeFine.WorkingWin.Dispatcher.Invoke(new Action(() =>
-                {
-                    DeFine.WorkingWin.TransProcess.Content = Log;
-                }));
-            }
-        }
-
-        public static bool WaitStopSign()
-        {
-            while (TranslationStatus == StateControl.Stop)
-            {
-                Thread.Sleep(1000);
-
-                if (TranslationStatus == StateControl.Cancel)
-                {
-                    if (TranslationCore != null)
-                    {
-                        TranslationCore.Close();
-                    }
-
-                    return true;
-                }
-            }
-
-            if (TranslationStatus == StateControl.Cancel)
-            {
-                if (TranslationCore != null)
-                {
-                    TranslationCore.Close();
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool SyncTransStateFreeze = false;
-
-        public static StateControl TranslationStatus = StateControl.Null;
-
-        public static void SyncTransState(Action EndAction, bool IsKeep = false)
-        {
-            if (SyncTransStateFreeze)
-            {
-                EndAction.Invoke();
-                return;
-            }
-
-            if (DeFine.WorkingWin == null)
-            {
-                return;
-            }
-
-            new Thread(() =>
-            {
-                if (TranslationStatus == StateControl.Run && !IsKeep)
-                {
-                    if (EngineConfig.AutoSetThreadLimit)
-                    {
-                        EngineConfig.MaxThreadCount = EngineConfig.AutoCalcThreadLimit();
-                    }
-
-                    YDListView? GetListView = DeFine.WorkingWin.TransViewList;
-
-                    if (GetListView != null)
-                    {
-                        SyncTransStateFreeze = true;
-
-                        ProxyCenter.UsingProxy();
-
-                        SetTransBarTittle("Preparing Translation Units...");
-
-                        List<TranslationUnit> TranslationUnits = new List<TranslationUnit>();
-
-                        for (int i = 0; i < GetListView.Rows; i++)
-                        {
-                            var Row = GetListView.RealLines[i];
-                            bool IsCloud = false;
-                            Row.SyncData(ref IsCloud);
-
-                            if (Row.TransText.Trim().Length == 0)
-                            {
-                                bool CanSet = true;
-
-                                if (Row.Type.Equals("Book"))
-                                {
-                                    if (Row.Key.EndsWith("(BookText)"))
-                                    {
-                                        if (DelegateHelper.SetDataCall != null)
-                                        {
-                                            DelegateHelper.SetDataCall(0, "Skip Book fields:" + Row.Key);
-                                        }
-
-                                        CanSet = false;
-                                    }
-                                }
-                                else
-                                if (Row.Score < 5)
-                                {
-                                    if (DelegateHelper.SetDataCall != null)
-                                    {
-                                        DelegateHelper.SetDataCall(0, "Skip Dangerous fields:" + Row.Key);
-                                    }
-
-                                    CanSet = false;
-                                }
-
-                                if (DeFine.WorkingWin?.CurrentTransType == 2)
-                                {
-                                    var GetTrans = DeFine.WorkingWin.GlobalEspReader?.StringsReader.QueryData(Row.Key);
-
-                                    if (GetTrans != null)
-                                    {
-                                        //Added to context memory. Helps AI improve accuracy.
-                                        Engine.AddAIMemory(Row.GetSource(), GetTrans.Value);
-
-                                        Translator.TransData.Add(Row.Key, GetTrans.Value);
-
-                                        var GetFakeGrid = GetListView.KeyToFakeGrid(Row.Key);
-                                        if (GetFakeGrid != null)
-                                        {
-                                            Row.TransText = GetTrans.Value;
-
-                                            Row.SyncUI(GetListView);
-                                        }
-
-                                        if (DelegateHelper.SetDataCall != null)
-                                        {
-                                            DelegateHelper.SetDataCall(0, "Skip StringsFile(" + GetTrans.Type.ToString() + ") fields:" + Row.Key);
-                                        }
-
-                                        CanSet = false;
-                                    }
-                                }
-
-                                if (CanSet)
-                                {
-                                    TranslationUnits.Add(new TranslationUnit(Engine.GetFileUniqueKey(),
-                                  Row.Key, Row.Type, Row.SourceText, Row.TransText, "", Engine.From, Engine.To, Row.Score));
-                                }
-                            }
-                        }
-
-                        TranslationCore = new BatchTranslationCore(Engine.From, Engine.To, TranslationUnits);
-
-                        TranslationCore.Start();
-
-                        SyncTransStateFreeze = false;
-
-                        EndAction.Invoke();
-
-                        while (TranslationCore.WorkState <= 1)
-                        {
-                            Thread.Sleep(100);
-
-                            SetTransBarTittle("Analyzing Words(" + TranslationCore.MarkLeadersPercent + "%)...");
-
-                            if (WaitStopSign())
-                            {
-                                return;
-                            }
-                        }
-
-                        if (WaitStopSign())
-                        {
-                            EndAction.Invoke();
-                            return;
-                        }
-
-                        int ModifyCount = Engine.TranslatedCount;
-
-                        SetTransBarTittle(string.Format("STRINGS({0}/{1})", ModifyCount, GetListView.Rows));
-
-                        Thread.Sleep(1000);
-
-                        if (WaitStopSign())
-                        {
-                            EndAction.Invoke();
-                            return;
-                        }
-
-                        bool IsEnd = false;
-
-                        while (!IsEnd)
-                        {
-                            var GetGrid = TranslationCore.DequeueTranslated(out IsEnd);
-
-                            if (GetGrid != null)
-                            {
-                                var GetFakeGrid = GetListView.KeyToFakeGrid(GetGrid.Key);
-                                if (GetFakeGrid != null)
-                                {
-                                    GetFakeGrid.TransText = GetGrid.TransText;
-                                    GetFakeGrid.SyncUI(GetListView);
-                                    SetTranslatorHistoryCache(GetGrid.Key, GetGrid.TransText, true);
-
-                                    Engine.TranslatedCount++;
-                                    SetTransBarTittle(string.Format("STRINGS({0}/{1})", Engine.TranslatedCount, GetListView.Rows));
-                                }
-                            }
-
-                            Thread.Sleep(20);
-
-                            if (WaitStopSign())
-                            {
-                                return;
-                            }
-                        }
-
-                        TranslationStatus = StateControl.Cancel;
-
-                        Engine.TranslatedCount = Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
-
-                        if (GetListView != null)
-                        {
-                            GetListView.QuickRefresh();
-                        }
-
-                        EndAction.Invoke();
-                    }
-                }
-                else
-                if (TranslationStatus == StateControl.Stop)
-                {
-                    SyncTransStateFreeze = true;
-
-                    if (TranslationCore != null)
-                    {
-                        TranslationCore.Stop();
-                    }
-
-                    EndAction.Invoke();
-
-                    SyncTransStateFreeze = false;
-                }
-                else
-                if (TranslationStatus == StateControl.Cancel || TranslationStatus == StateControl.Null)
-                {
-                    SyncTransStateFreeze = true;
-
-                    if (TranslationCore != null)
-                    {
-                        try
-                        {
-                            TranslationCore.Close();
-                        }
-                        catch { }
-                    }
-
-                    EndAction.Invoke();
-
-                    SyncTransStateFreeze = false;
-                }
-                else
-                {
-                    SyncTransStateFreeze = true;
-
-                    if (TranslationCore != null)
-                    {
-                        TranslationCore.Keep();
-                    }
-
-                    EndAction.Invoke();
-
-                    SyncTransStateFreeze = false;
-                }
-            }).Start();
-        }
-
-        public static int WriteDictionary()
-        {
-            int ReplaceCount = 0;
-            for (int i = 0; i < DeFine.WorkingWin.TransViewList.Rows; i++)
-            {
-                FakeGrid GetFakeGrid = DeFine.WorkingWin.TransViewList.RealLines[i];
-
-                string GetKey = GetFakeGrid.Key;
-                string GetSourceText = GetFakeGrid.SourceText;
-                var TargetText = GetFakeGrid.TransText;
-
-                YDDictionaryHelper.UPDateTransText(GetKey, GetSourceText);
-            }
-
-            return ReplaceCount;
-        }
-
+       
         public static void ClearLocalCache(int FileUniqueKey)
         {
-            LocalDBCache.DeleteCacheByFileUniqueKey(FileUniqueKey, DeFine.GlobalLocalSetting.TargetLanguage);
+            LocalDBCache.DeleteCacheByFileUniqueKey(FileUniqueKey, Engine.To);
             Translator.TransData.Clear();
         }
 
         public static bool ClearCloudCache(int FileUniqueKey)
         {
             return CloudDBCache.ClearCloudCache(FileUniqueKey);
+        }
+
+        public static void ClearTranslatorHistoryCache()
+        {
+            TranslatorHistoryCaches.Clear();
         }
     }
 

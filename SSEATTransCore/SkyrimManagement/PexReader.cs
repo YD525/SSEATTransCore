@@ -337,12 +337,12 @@ namespace SSEATTransCore.SkyrimManagement
                 {
                     if (HaveError)
                     {
-                        new Thread(() =>
-                        {
-                            Thread.Sleep(500);
-                            System.Windows.MessageBox.Show("To help you roll back the operation.Reason:Decompilation failed");
-                            DeFine.WorkingWin.CancelAny();
-                        }).Start();
+                        //new Thread(() =>
+                        //{
+                        //    Thread.Sleep(500);
+                        //    System.Windows.MessageBox.Show("To help you roll back the operation.Reason:Decompilation failed");
+                        //    //DeFine.WorkingWin.CancelAny();
+                        //}).Start();
                         return;
                     }
                     ProcessCode();
@@ -498,25 +498,25 @@ namespace SSEATTransCore.SkyrimManagement
                 RichText += GetLine.Trim() + "\r\n";
             }
 
-            if (DeFine.CurrentCodeView != null)
-            {
-                if (DeFine.GlobalLocalSetting.ShowCode)
-                {
-                    double GetHeight = DeFine.WorkingWin.Height;
-                    double GetTop = DeFine.WorkingWin.Top;
-                    double GetLeft = DeFine.WorkingWin.Left;
+            //if (DeFine.CurrentCodeView != null)
+            //{
+            //    if (DeFine.GlobalLocalSetting.ShowCode)
+            //    {
+            //        double GetHeight = DeFine.WorkingWin.Height;
+            //        double GetTop = DeFine.WorkingWin.Top;
+            //        double GetLeft = DeFine.WorkingWin.Left;
 
-                    DeFine.CurrentCodeView.Dispatcher.Invoke(new Action(() =>
-                    {
-                        DeFine.CurrentCodeView.Height = GetHeight;
-                        DeFine.CurrentCodeView.Show();
-                        DeFine.ActiveIDE.Text = RichText;
-                        DeFine.CurrentCodeView.ReSetFolding();
-                        DeFine.CurrentCodeView.Left = GetLeft - DeFine.CurrentCodeView.Width;
-                        DeFine.CurrentCodeView.Top = GetTop;
-                    }));
-                }
-            }
+            //        DeFine.CurrentCodeView.Dispatcher.Invoke(new Action(() =>
+            //        {
+            //            DeFine.CurrentCodeView.Height = GetHeight;
+            //            DeFine.CurrentCodeView.Show();
+            //            DeFine.ActiveIDE.Text = RichText;
+            //            DeFine.CurrentCodeView.ReSetFolding();
+            //            DeFine.CurrentCodeView.Left = GetLeft - DeFine.CurrentCodeView.Width;
+            //            DeFine.CurrentCodeView.Top = GetTop;
+            //        }));
+            //    }
+            //}
 
             HeuristicEngine.AnalyzeCodeLine(this.CodeLines);
             for (int i = 0; i < HeuristicEngine.DStringItems.Count; i++)
