@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using PhoenixEngine.EngineManagement;
 using SSEATTransCore.DelegateManagement;
 
 namespace SSEATTransCore.ServerManagement
@@ -121,6 +122,11 @@ namespace SSEATTransCore.ServerManagement
 
                 switch (GetType)
                 {
+                    case "InitEngine":
+                        {
+                            Engine.Init();
+                        }
+                        break;
                     case "CloseService":
                         {
                             if (Listener != null)

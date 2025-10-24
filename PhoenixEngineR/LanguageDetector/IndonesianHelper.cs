@@ -1,4 +1,7 @@
 ﻿
+using System.Linq;
+using System;
+
 namespace PhoenixEngine.LanguageDetector
 {
     public static class IndonesianHelper
@@ -15,12 +18,18 @@ namespace PhoenixEngine.LanguageDetector
         /// <param name="Input">Text to check</param>
         /// <param name="KeywordThreshold">Minimum number of keyword hits required (default 2)</param>
         /// <returns>True if text is probably Indonesian, else false</returns>
-        public static bool IsProbablyIndonesian(string Input, int KeywordThreshold = 2)
+        public static bool IsProbablyIndonesian(string Input, int KeywordThreshold=2)
         {
             if (string.IsNullOrWhiteSpace(Input))
                 return false;
 
-            int KeywordHits = IndonesianKeywords.Count(k => Input.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0);
+            int KeywordHits = 0;
+            for (int i = 0; i < IndonesianKeywords.Length; i++)
+            {
+                if (Input.IndexOf(IndonesianKeywords[i], StringComparison.OrdinalIgnoreCase) >= 0)
+                    KeywordHits++;
+            }
+
             return KeywordHits >= KeywordThreshold;
         }
 

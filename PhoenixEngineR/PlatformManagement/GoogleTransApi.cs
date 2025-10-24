@@ -34,19 +34,18 @@ namespace PhoenixEngine.PlatformManagement
             }
             catch { return new HttpClient(); }
         }
-        public string Translate(string Text, Languages TargetLanguage, Languages? SourceLanguage,ref PlatformCall Call)
+        public string Translate(string Text, Languages TargetLanguage, Languages? SourceLanguage, ref PlatformCall Call)
         {
-
             try
             {
                 string TargetLang = LanguageHelper.ToLanguageCode(TargetLanguage);
                 string SourceLang = SourceLanguage.HasValue ? LanguageHelper.ToLanguageCode(SourceLanguage.Value) : "auto";
 
-                string Url = $"https://translation.googleapis.com/language/translate/v2" +
-                             $"?key={EngineConfig.GoogleApiKey}" +
-                             $"&q={HttpUtility.UrlEncode(Text)}" +
-                             $"&target={TargetLang}" +
-                             $"&source={SourceLang}";
+                string Url = "https://translation.googleapis.com/language/translate/v2" +
+                             "?key=" + EngineConfig.GoogleApiKey +
+                             "&q=" + HttpUtility.UrlEncode(Text) +
+                             "&target=" + TargetLang +
+                             "&source=" + SourceLang;
 
                 Call.Platform = PlatformType.GoogleApi;
                 Call.SendString = Url;
@@ -55,23 +54,30 @@ namespace PhoenixEngine.PlatformManagement
                 Response.EnsureSuccessStatusCode();
 
                 string Json = Response.Content.ReadAsStringAsync().Result;
-
                 Call.ReceiveString = Json;
 
-                using JsonDocument Doc = JsonDocument.Parse(Json);
-
-                if (Doc.RootElement.TryGetProperty("data", out JsonElement DataElem) &&
-                    DataElem.TryGetProperty("translations", out JsonElement TranslationsElem) &&
-                    TranslationsElem.GetArrayLength() > 0 &&
-                    TranslationsElem[0].TryGetProperty("translatedText", out JsonElement TextElem))
+                // 简单字符串截取 translatedText
+                string Marker = "\"translatedText\":\"";
+                int Start = Json.IndexOf(Marker);
+                if (Start >= 0)
                 {
-                    Call.Success = true;
-                    return TextElem.GetString() ?? string.Empty;
+                    Start += Marker.Length;
+                    int End = Json.IndexOf("\"", Start);
+                    if (End > Start)
+                    {
+                        Call.Success = true;
+                        string Result = Json.Substring(Start, End - Start);
+                        Result = Result.Replace("\\n", "\n").Replace("\\\"", "\"").Replace("\\\\", "\\");
+                        return Result;
+                    }
                 }
 
                 return string.Empty;
             }
-            catch { return string.Empty; }
+            catch
+            {
+                return string.Empty;
+            }
         }
     }
 }

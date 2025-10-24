@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.LanguageDetector
 {
@@ -11,12 +12,18 @@ namespace PhoenixEngine.LanguageDetector
         "है", "में", "के", "और", "का", "की", "से", "यह", "मैं", "तुम", "यहाँ"
     };
 
-        public static bool IsProbablyHindi(string input, int keywordThreshold = 2)
+        public static bool IsProbablyHindi(string input, int keywordThreshold=2)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return false;
 
-            int keywordHits = HindiKeywords.Count(k => input.Contains(k));
+            int keywordHits = 0;
+            for (int i = 0; i < HindiKeywords.Length; i++)
+            {
+                if (input.Contains(HindiKeywords[i]))
+                    keywordHits++;
+            }
+
             bool hasHindiChars = HindiCharRegex.IsMatch(input);
 
             return hasHindiChars && keywordHits >= keywordThreshold;
@@ -27,7 +34,13 @@ namespace PhoenixEngine.LanguageDetector
             if (string.IsNullOrWhiteSpace(input))
                 return 0;
 
-            int keywordHits = HindiKeywords.Count(k => input.Contains(k));
+            int keywordHits = 0;
+            for (int i = 0; i < HindiKeywords.Length; i++)
+            {
+                if (input.Contains(HindiKeywords[i]))
+                    keywordHits++;
+            }
+
             int charCount = HindiCharRegex.Matches(input).Count;
             int length = input.Length;
 

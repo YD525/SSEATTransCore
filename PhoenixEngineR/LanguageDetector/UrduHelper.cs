@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.LanguageDetector
 {
@@ -11,12 +12,18 @@ namespace PhoenixEngine.LanguageDetector
         "ہے", "میں", "کے", "اور", "کا", "کی", "سے", "یہ", "میں", "تم", "یہاں"
         };
 
-        public static bool IsProbablyUrdu(string input, int keywordThreshold = 2)
+        public static bool IsProbablyUrdu(string input, int keywordThreshold=2)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return false;
 
-            int keywordHits = UrduKeywords.Count(k => input.Contains(k));
+            int keywordHits = 0;
+            for (int i = 0; i < UrduKeywords.Length; i++)
+            {
+                if (input.Contains(UrduKeywords[i]))
+                    keywordHits++;
+            }
+
             bool hasUrduChars = UrduCharRegex.IsMatch(input);
 
             return hasUrduChars && keywordHits >= keywordThreshold;
@@ -27,7 +34,13 @@ namespace PhoenixEngine.LanguageDetector
             if (string.IsNullOrWhiteSpace(input))
                 return 0;
 
-            int keywordHits = UrduKeywords.Count(k => input.Contains(k));
+            int keywordHits = 0;
+            for (int i = 0; i < UrduKeywords.Length; i++)
+            {
+                if (input.Contains(UrduKeywords[i]))
+                    keywordHits++;
+            }
+
             int charCount = UrduCharRegex.Matches(input).Count;
             int length = input.Length;
 

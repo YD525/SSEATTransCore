@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.LanguageDetector
 {
@@ -23,21 +24,23 @@ namespace PhoenixEngine.LanguageDetector
         /// <param name="KanaThreshold">Threshold ratio of kana characters to total length (default 0.1)</param>
         /// <param name="KeywordHitsThreshold">Minimum number of matched keywords required (default 1)</param>
         /// <returns>True if text is probably Japanese, otherwise false</returns>
-        public static bool IsProbablyJapanese(string Input, double KanaThreshold = 0.1, int KeywordHitsThreshold = 1)
+        public static bool IsProbablyJapanese(string Input, double KanaThreshold=0.1, int KeywordHitsThreshold=1)
         {
-            if (string.IsNullOrWhiteSpace(Input)) return false;
+            if (string.IsNullOrWhiteSpace(Input))
+                return false;
 
-            // Count of kana characters (hiragana, katakana, extended kana, half-width kana)
             int KanaCount = JapaneseCharRegex.Matches(Input).Count;
             int TotalLength = Input.Length;
 
-            // Kana density (to avoid false positives from very few kana characters)
             double KanaRatio = (double)KanaCount / TotalLength;
 
-            // Number of matched keywords found in the input text
-            int KeywordHits = JapaneseKeywords.Count(word => Input.Contains(word));
+            int KeywordHits = 0;
+            for (int i = 0; i < JapaneseKeywords.Length; i++)
+            {
+                if (Input.Contains(JapaneseKeywords[i]))
+                    KeywordHits++;
+            }
 
-            // Evaluation rule: either kana density is sufficiently high, or enough keywords are matched
             return KanaRatio > KanaThreshold || KeywordHits >= KeywordHitsThreshold;
         }
 

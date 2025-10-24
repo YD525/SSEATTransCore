@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System;
+using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.LanguageDetector
 {
@@ -21,12 +23,18 @@ namespace PhoenixEngine.LanguageDetector
         /// <param name="Input">The text to check</param>
         /// <param name="KeywordThreshold">Minimum number of keyword matches required (default 2)</param>
         /// <returns>True if the text is probably Italian, otherwise false</returns>
-        public static bool IsProbablyItalian(string Input, int KeywordThreshold = 2)
+        public static bool IsProbablyItalian(string Input, int KeywordThreshold=2)
         {
             if (string.IsNullOrWhiteSpace(Input))
                 return false;
 
-            int KeywordHits = ItalianKeywords.Count(k => Input.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0);
+            int KeywordHits = 0;
+            for (int i = 0; i < ItalianKeywords.Length; i++)
+            {
+                if (Input.IndexOf(ItalianKeywords[i], StringComparison.OrdinalIgnoreCase) >= 0)
+                    KeywordHits++;
+            }
+
             bool HasAccent = ItalianAccentRegex.IsMatch(Input);
 
             return KeywordHits >= KeywordThreshold && HasAccent;

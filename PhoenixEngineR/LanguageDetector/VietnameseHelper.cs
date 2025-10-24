@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System;
+using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.LanguageDetector
 {
@@ -24,18 +26,20 @@ namespace PhoenixEngine.LanguageDetector
         /// <param name="Input">The text to check</param>
         /// <param name="KeywordThreshold">Minimum number of keyword matches required (default 2)</param>
         /// <returns>True if the text is probably Vietnamese, otherwise false</returns>
-        public static bool IsProbablyVietnamese(string Input, int KeywordThreshold = 2)
+        public static bool IsProbablyVietnamese(string Input, int KeywordThreshold=2)
         {
             if (string.IsNullOrWhiteSpace(Input))
                 return false;
 
-            // Count the number of keyword matches
-            int KeywordHits = VietnameseKeywords.Count(k => Input.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0);
+            int KeywordHits = 0;
+            for (int i = 0; i < VietnameseKeywords.Length; i++)
+            {
+                if (Input.IndexOf(VietnameseKeywords[i], StringComparison.OrdinalIgnoreCase) >= 0)
+                    KeywordHits++;
+            }
 
-            // Check if input contains Vietnamese accented characters
             bool HasAccent = VietnameseAccentRegex.IsMatch(Input);
 
-            // Consider it Vietnamese if keyword hits meet threshold and accents are present
             return KeywordHits >= KeywordThreshold && HasAccent;
         }
 
