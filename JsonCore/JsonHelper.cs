@@ -31,19 +31,14 @@ namespace JsonCore
         {
             var JsonSetting = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
 
-            if (Json.Replace("\r\n", "").Replace(" ","").StartsWith("{"))
+            try
             {
-                try
-                {
-                    return JsonConvert.DeserializeObject<T>(Json);
-                }
-                catch
-                {
-                    return new T(); 
-                }
+                return JsonConvert.DeserializeObject<T>(Json);
             }
-
-            return new T();
+            catch
+            {
+                return new T();
+            }
         }
     }
 }
