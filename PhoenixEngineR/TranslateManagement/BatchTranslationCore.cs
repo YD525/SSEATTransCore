@@ -13,11 +13,6 @@ using static PhoenixEngine.TranslateCore.LanguageHelper;
 
 namespace PhoenixEngineR.TranslateManage
 {
-    // Copyright (c) 2025 YD525
-    // Licensed under the MIT License.
-    // See LICENSE file in the project root for full license information.
-    //https://github.com/YD525/PhoenixEngine
-
     public class TranslationUnit
     {
         public int FileUniqueKey = 0;

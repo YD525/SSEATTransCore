@@ -56,7 +56,6 @@ namespace PhoenixEngine.PlatformManagement
                 string Json = Response.Content.ReadAsStringAsync().Result;
                 Call.ReceiveString = Json;
 
-                // 简单字符串截取 translatedText
                 string Marker = "\"translatedText\":\"";
                 int Start = Json.IndexOf(Marker);
                 if (Start >= 0)

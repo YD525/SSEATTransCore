@@ -12,9 +12,6 @@ using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.SSELexiconBridge
 {
-    /// <summary>
-    /// For SSE Lexicon
-    /// </summary>
     public class NativeBridge
     {
         public class TranslatorBridge
