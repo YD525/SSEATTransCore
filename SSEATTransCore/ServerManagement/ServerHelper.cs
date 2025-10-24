@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -26,22 +29,25 @@ namespace SSEATTransCore.ServerManagement
             this.data = Data;
         }
     }
-
     public class ServerHelper
     {
-        private class Empty
-        {
-
-        }
-
-        public object Return(int Code, string Message)
-        {
-            return new Result<Empty>(Code, Message, new Empty());
-        }
-
         public Thread ServerThread = null;
         public HttpListener Listener;
 
+        public static HttpCallBack CallBack = null;
+        public delegate string HttpCallBack(HttpListenerRequest Request, HttpListenerResponse Response);
+
+        public NameValueCollection GetPostData(HttpListenerRequest Request)
+        {
+            using (var Reader = new StreamReader(Request.InputStream, Request.ContentEncoding))
+            {
+                string Body = Reader.ReadToEnd();
+                var FormData = HttpUtility.ParseQueryString(Body);
+
+                return FormData;
+            }
+            return new NameValueCollection();
+        }
         public void Init(int Port)
         {
             if (ServerThread == null)
@@ -79,11 +85,11 @@ namespace SSEATTransCore.ServerManagement
 
                 if (Request.HttpMethod == "POST" && Request.InputStream != null)
                 {
-                    ReturnObj = JsonCore.JsonHelper.GetJson(HandleRequest(Request, Response));
+                    ReturnObj = JsonCore.JsonHelper.GetJson(CallBack.Invoke(Request, Response));
                 }
                 else
                     {
-                    ReturnObj = JsonCore.JsonHelper.GetJson(HandleRequest(Request, Response));
+                    ReturnObj = JsonCore.JsonHelper.GetJson(CallBack.Invoke(Request, Response));
                 }
 
                 var ReturnByteArr = Encoding.UTF8.GetBytes(ReturnObj);
@@ -113,63 +119,6 @@ namespace SSEATTransCore.ServerManagement
                 }
             }
             catch { }
-        }
-
-        //Test Args -Debug -SetPort 11152
-        //Test http://localhost:11152/SSEAT?Type=CloseService HttpGet 
-        private object HandleRequest(HttpListenerRequest Request, HttpListenerResponse Response)
-        {
-            try
-            {
-                string GetType = Request.QueryString.Get("Type");
-
-                switch (GetType)
-                {
-                    case "TranslateV1":
-                        {
-                            string Original = Request.QueryString.Get("Original");
-                            string To = Request.QueryString.Get("To");
-                            TranslationUnit NTranslationUnit = new TranslationUnit(Original.GetHashCode(),Original,
-                                "", Original,
-                                "","",
-                                PhoenixEngine.TranslateCore.Languages.Auto,
-                                LanguageHelper.FromLanguageCode(To),
-                                100
-                                );
-                            NTranslationUnit.From = PhoenixEngine.TranslateCore.Languages.Auto;
-                            ;
-                            bool CanSleep = false;
-                            var GetResult = Translator.QuickTrans(NTranslationUnit,ref CanSleep);
-                            Return(1, GetResult);
-                        }
-                        break;
-                    case "InitEngine":
-                        {
-                            Engine.Init();
-                        }
-                        break;
-                    case "CloseService":
-                        {
-                            if (Listener != null)
-                            {
-                                try
-                                {
-                                    //Close Service
-                                    Listener.Close();
-                                    GC.SuppressFinalize(this);
-                                }
-                                catch { }
-                            }
-                            DeFine.ExitAny();
-                        }
-                        break;
-                }
-
-
-            }
-            catch { return Return(-2, "Http Server Error!"); }
-
-            return Return(-1, "RouteNotFound");
         }
     }
 }
