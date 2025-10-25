@@ -147,11 +147,18 @@ FROM (
             }
         }
 
-        public static void Stop()
+        public static void Stop(bool State)
         {
             if (TranslationCore != null)
             {
-                TranslationCore.Stop();
+                if (State)
+                {
+                    TranslationCore.Stop();
+                }
+                else
+                {
+                    TranslationCore.Keep();
+                }
             }
         }
 

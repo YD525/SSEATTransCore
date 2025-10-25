@@ -138,13 +138,78 @@ namespace SSEATTransCore
 
                 switch (GetType)
                 {
-                    //http://localhost:11152/SSEAT?Type=ReadPexFile (HTTP GET)
-                    //Path Payload
+                    case "StopBatchTranslation":
+                        {
+                            //Pause Continue Batch Translation
+                            bool PauseState = ConvertHelper.ObjToBool(Request.QueryString.Get("PauseState"));
+                            Engine.Stop(PauseState);
+                            Json = Return(1);
+                        }
+                    break;  
+                    case "StartBatchTranslation":
+                        {
+                            //Start batch translation
+                            if (Engine.From != Languages.Null && Engine.To != Languages.Null)
+                            {
+                                Engine.Start(true);
+                                Json = Return(1);
+                            }
+
+                            Json = Return(0);
+                        }
+                    break;
+                    //Add items to the queue that need translation.
+                    case "Enqueue":
+                        {
+                            //Queue items that need translation
+                            var Form = Server.GetPostData(Request);
+                            //Post Payload
+                            string FileName = Form["FileName"];
+                            string Key = Form["Key"];
+                            string Type = Form["Type "];
+                            string Original = Form["Original"];
+                            string AIParam = Form["AIParam"];
+                            TranslationUnit Unit = new TranslationUnit(
+                                FileName.GetHashCode(), 
+                                Key,
+                                Type, 
+                                Original,
+                                "",
+                                AIParam,
+                                Engine.From,
+                                Engine.To,
+                                100
+                                );
+
+                            int GetEnqueueCount = Engine.AddTranslationUnit(Unit);
+
+                            Json = Return(GetEnqueueCount);
+                        }
+                        break;
+                    case "GetWorkingThreadCount":
+                        {
+                            //Get the number of working threads
+                            Json = Return(1,Engine.GetThreadCount().ToString());
+                        }
+                        break;
+                    case "SetThread":
+                        {
+                            //Set the maximum number of working threads
+                            int ThreadCount = ConvertHelper.ObjToInt(Request.QueryString.Get("ThreadCount"));
+
+                            EngineConfig.MaxThreadCount = ThreadCount;
+                            EngineConfig.AutoSetThreadLimit = false;
+
+                            EngineConfig.Save();
+                        }
+                        break;
                     case "GetData":
                         {
+                            //SSEAT needs to poll until the Value value appears.
                             var Form = Server.GetPostData(Request);
                             string Key = Form["Key"];
 
+                            lock(Translator.TransDataLocker)
                             if (Translator.TransData.ContainsKey(Key))
                             {
                                 Json = Return(1, Translator.TransData[Key]);
@@ -161,6 +226,7 @@ namespace SSEATTransCore
                             string Key = Form["Key"];
                             string Value = Form["Value"];
 
+                            lock (Translator.TransDataLocker)
                             if (Translator.TransData.ContainsKey(Key))
                             {
                                 Translator.TransData[Key] = Value;
@@ -177,7 +243,6 @@ namespace SSEATTransCore
                         {
                             var Form = Server.GetPostData(Request);
 
-                            //Post Payload
                             string OutputPath = Form["OutputPath"];
 
                             CurrentPexReader.SavePexFile(OutputPath);
@@ -189,7 +254,6 @@ namespace SSEATTransCore
                         {
                             var Form = Server.GetPostData(Request);
 
-                            //Post Payload
                             string InputPath = Form["InputPath"];
 
                             CurrentPexReader.LoadPexFile(InputPath);
@@ -197,8 +261,6 @@ namespace SSEATTransCore
                             Json = Return<List<StringParam>>(1,"",CurrentPexReader.Strings);
                         }
                         break;
-                    //http://localhost:11152/SSEAT?Type=SetApiKey&PlatformType=ChatGpt&Enable=true (HTTP GET)
-                    //ApiKey Payload
                     case "SetApiKey":
                         { 
                             string PlatformType = Request.QueryString.Get("PlatformType");
@@ -256,10 +318,10 @@ namespace SSEATTransCore
 
                             if (Engine.To == Languages.Null)
                             {
-                                Json = Return(0, "Target language cannot be empty", new Empty());
+                                Json = Return(0, "Target language cannot be empty");
                             }
 
-                            Json = Return<Empty>(1, string.Empty,new Empty());
+                            Json = Return(1, string.Empty);
                         }
                         break;
                     case "SetSkyrimPath":
