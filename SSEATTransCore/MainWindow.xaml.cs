@@ -158,6 +158,24 @@ namespace SSEATTransCore
                             Json = Return(0);
                         }
                     break;
+                    case "Dequeue":
+                        {
+                            //Dequeue completed items
+                            bool IsEnd = false;
+                            var GetUnit = Engine.DequeueTranslated(ref IsEnd);
+
+                            if (IsEnd)
+                            {
+                                //code == 1 The queue is empty and all entries have been translated.
+                                Json = Return<TranslationUnit>(1, "", GetUnit);
+                            }
+                            else
+                            {
+                                //code == 0 There is still content in the queue and it still needs to be dequeued.
+                                Json = Return<TranslationUnit>(0, "", GetUnit);
+                            }
+                        }
+                        break;
                     //Add items to the queue that need translation.
                     case "Enqueue":
                         {
@@ -205,7 +223,6 @@ namespace SSEATTransCore
                         break;
                     case "GetData":
                         {
-                            //SSEAT needs to poll until the Value value appears.
                             var Form = Server.GetPostData(Request);
                             string Key = Form["Key"];
 
