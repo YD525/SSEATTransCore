@@ -105,11 +105,6 @@ namespace PhoenixEngine.TranslateManage
 
             Languages SourceLanguage = Item.From;
 
-            if (SourceLanguage == Languages.Auto)
-            {
-                SourceLanguage = LanguageHelper.DetectLanguageByLine(Content);
-            }  
-
             if (SourceLanguage == Item.To)
             {
                 return GetSourceStr;
