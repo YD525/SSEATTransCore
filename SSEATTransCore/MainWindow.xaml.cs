@@ -111,6 +111,11 @@ namespace SSEATTransCore
             SetLog("Start WebService:" + "http://localhost:" + CurrentPort + "/SSEAT", DateTime.Now);
         }
 
+
+        public string DeCode(string Item)
+        {
+            return HttpUtility.UrlDecode(Item);
+        }
         //Json returned after general response request
         //Json {code=1,xxxxxx}
 
@@ -189,11 +194,11 @@ namespace SSEATTransCore
                             //Queue items that need translation
                             var Form = Server.GetPostData(Request);
                             //Post Payload
-                            string FileName = Form["FileName"];
-                            string Key = Form["Key"];
-                            string Type = Form["Type "];
-                            string Original = Form["Original"];
-                            string AIParam = Form["AIParam"];
+                            string FileName = DeCode(Form["FileName"]);
+                            string Key = DeCode(Form["Key"]);
+                            string Type = DeCode(Form["Type"]);
+                            string Original = DeCode(Form["Original"]);
+                            string AIParam = DeCode(Form["AIParam"]);
                             TranslationUnit Unit = new TranslationUnit(
                                 FileName.GetHashCode(), 
                                 Key,
@@ -231,7 +236,7 @@ namespace SSEATTransCore
                     case "GetData":
                         {
                             var Form = Server.GetPostData(Request);
-                            string Key = Form["Key"];
+                            string Key = DeCode(Form["Key"]);
 
                             lock(Translator.TransDataLocker)
                             if (Translator.TransData.ContainsKey(Key))
@@ -247,8 +252,8 @@ namespace SSEATTransCore
                     case "SetData":
                         {
                             var Form = Server.GetPostData(Request);
-                            string Key = Form["Key"];
-                            string Value = Form["Value"];
+                            string Key = DeCode(Form["Key"]);
+                            string Value = DeCode(Form["Value"]);
 
                             lock (Translator.TransDataLocker)
                             if (Translator.TransData.ContainsKey(Key))
@@ -267,7 +272,7 @@ namespace SSEATTransCore
                         {
                             var Form = Server.GetPostData(Request);
 
-                            string OutputPath = Form["OutputPath"];
+                            string OutputPath = DeCode(Form["OutputPath"]);
 
                             PexReader.SavePexFile(OutputPath);
 
@@ -278,7 +283,7 @@ namespace SSEATTransCore
                         {
                             var Form = Server.GetPostData(Request);
 
-                            string InputPath = Form["InputPath"];
+                            string InputPath = DeCode(Form["InputPath"]);
 
                             PexReader.LoadPexFile(InputPath);
 
@@ -292,7 +297,7 @@ namespace SSEATTransCore
                             var Form = Server.GetPostData(Request);
 
                             //Post Payload
-                            string ApiKey = Form["ApiKey"];
+                            string ApiKey = DeCode(Form["ApiKey"]);
 
                             //Configure the key according to the platform
                             switch (ApiKey)
@@ -353,7 +358,7 @@ namespace SSEATTransCore
                             var Form = Server.GetPostData(Request);
 
                             //Post Payload
-                            string SkyrimPath = Form["SkyrimPath"];
+                            string SkyrimPath = DeCode(Form["SkyrimPath"]);
 
                             if (Directory.Exists(SkyrimPath))
                             {
@@ -372,7 +377,7 @@ namespace SSEATTransCore
                                 //Suitable for translation one by one
                                 var Form = Server.GetPostData(Request);
                                 //Post Payload
-                                string Original = Form["Original"];
+                                string Original = DeCode(Form["Original"]);
 
                                 TranslationUnit NTranslationUnit = new TranslationUnit(Original.GetHashCode(), Original,
                                     "", Original,
