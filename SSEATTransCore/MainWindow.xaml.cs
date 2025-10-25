@@ -116,11 +116,15 @@ namespace SSEATTransCore
 
         public object Return(int Code)
         {
-            return Return(Code, string.Empty);
+            return Return<Empty>(Code, string.Empty,new Empty());
         }
-        public object Return(int Code, string Message)
+        public object Return(int Code,string Message)
         {
-            return new Result<Empty>(Code, Message, new Empty());
+            return Return<Empty>(Code, Message, new Empty());
+        }
+        public object Return<T>(int Code, string Message,T Data) where T : new()
+        {
+            return new Result<T>(Code, Message, Data);
         }
 
         //Process Http request and return 
@@ -190,7 +194,7 @@ namespace SSEATTransCore
 
                             CurrentPexReader.LoadPexFile(InputPath);
 
-                            Json = Return(1,JsonHelper.GetJson(CurrentPexReader.Strings));
+                            Json = Return<List<StringParam>>(1,"",CurrentPexReader.Strings);
                         }
                         break;
                     //http://localhost:11152/SSEAT?Type=SetApiKey&PlatformType=ChatGpt&Enable=true (HTTP GET)
@@ -252,10 +256,10 @@ namespace SSEATTransCore
 
                             if (Engine.To == Languages.Null)
                             {
-                                Json = Return(0, "Target language cannot be empty");
+                                Json = Return(0, "Target language cannot be empty", new Empty());
                             }
 
-                            Json = Return(1, string.Empty);
+                            Json = Return<Empty>(1, string.Empty,new Empty());
                         }
                         break;
                     case "SetSkyrimPath":
