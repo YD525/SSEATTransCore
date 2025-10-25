@@ -3,21 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.AccessControl;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.TextFormatting;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using JsonCore;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
@@ -27,6 +15,7 @@ using PhoenixEngineR.TranslateManage;
 using SSEATTransCore.DelegateManagement;
 using SSEATTransCore.ServerManagement;
 using SSEATTransCore.SkyrimManagement;
+
 namespace SSEATTransCore
 {
     public class Empty
@@ -304,13 +293,17 @@ namespace SSEATTransCore
                             {
                                 case "ChatGpt":
                                     {
+                                        string AIModel = ConvertHelper.ObjToStr(Form["AIModel"]);
                                         EngineConfig.ChatGptKey = ApiKey;
+                                        EngineConfig.ChatGptModel = AIModel;
                                         EngineConfig.ChatGptApiEnable = Enable;
                                     }
                                 break;
                                 case "Gemini":
                                     {
+                                        string AIModel = ConvertHelper.ObjToStr(Form["AIModel"]);
                                         EngineConfig.GeminiKey = ApiKey;
+                                        EngineConfig.GeminiModel = AIModel;
                                         EngineConfig.GeminiApiEnable = Enable;
                                     }
                                 break;
@@ -322,8 +315,48 @@ namespace SSEATTransCore
                                 break;
                                 case "DeepL":
                                     {
+                                        bool IsFreeDeepL = ConvertHelper.ObjToBool(Form["IsFreeDeepL"]);
+
                                         EngineConfig.DeepLKey = ApiKey;
+                                        EngineConfig.IsFreeDeepL = IsFreeDeepL;
                                         EngineConfig.DeepLApiEnable = Enable;
+                                    }
+                                break;
+                                case "LocalAI":
+                                    {
+                                        int LocalAIPort = ConvertHelper.ObjToInt(Form["LocalAIPort"]);
+                                        string AIModel = ConvertHelper.ObjToStr(Form["AIModel"]);
+                                        //LocalAI 
+                                        EngineConfig.LMLocalAIEnable = Enable;
+
+                                        if (LocalAIPort > 0)
+                                        {
+                                            EngineConfig.LMPort = LocalAIPort;
+                                        }
+                                        if (AIModel.Length > 0)
+                                        {
+                                            EngineConfig.LMModel = AIModel;
+                                        }
+                                        //EngineConfig.LMModel = "google/gemma-3-12b";
+                                    }
+                                break;
+                                case "DeepSeek":
+                                    {
+                                        string AIModel = ConvertHelper.ObjToStr(Form["AIModel"]);
+
+                                        EngineConfig.DeepSeekKey = ApiKey;
+                                        EngineConfig.DeepSeekModel = AIModel;
+                                        EngineConfig.DeepSeekApiEnable = Enable;
+                                       
+                                    }
+                                break;
+                                case "Baichuan":
+                                    {
+                                        string AIModel = ConvertHelper.ObjToStr(Form["AIModel"]);
+
+                                        EngineConfig.BaichuanKey = ApiKey;
+                                        EngineConfig.BaichuanModel = AIModel;
+                                        EngineConfig.BaichuanApiEnable = Enable;
                                     }
                                 break;
                             }
