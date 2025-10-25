@@ -33,6 +33,8 @@ namespace PhoenixEngineR.TranslateManage
         public Languages From = Languages.Auto;
         public Languages To = Languages.Auto;
 
+        public TranslationUnit() { }
+
         private CancellationTokenSource TransThreadToken;
 
         public bool CanTrans()
