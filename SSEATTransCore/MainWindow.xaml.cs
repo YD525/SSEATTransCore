@@ -40,7 +40,7 @@ namespace SSEATTransCore
     public partial class MainWindow : Window
     {
         public ServerHelper Server = null;
-        public PexReader CurrentPexReader = null;
+        public PexReader PexReader = null;
         public bool IsDebug = false;
         public int CurrentPort = 0;
 
@@ -51,7 +51,7 @@ namespace SSEATTransCore
 
             TranslatorExtend.Init();
 
-            CurrentPexReader = new PexReader();
+            PexReader = new PexReader();
 
             string[] Args = Environment.GetCommandLineArgs();
             string CommandLine = "";
@@ -138,6 +138,13 @@ namespace SSEATTransCore
 
                 switch (GetType)
                 {
+                    case "CloseBatchTranslation":
+                        {
+                            //Terminate all threads that are translating and clear the queue
+                            Engine.End();
+                            Json = Return(1);
+                        }
+                    break;
                     case "StopBatchTranslation":
                         {
                             //Pause Continue Batch Translation
@@ -262,7 +269,7 @@ namespace SSEATTransCore
 
                             string OutputPath = Form["OutputPath"];
 
-                            CurrentPexReader.SavePexFile(OutputPath);
+                            PexReader.SavePexFile(OutputPath);
 
                             Json = Return(1);
                         }
@@ -273,9 +280,9 @@ namespace SSEATTransCore
 
                             string InputPath = Form["InputPath"];
 
-                            CurrentPexReader.LoadPexFile(InputPath);
+                            PexReader.LoadPexFile(InputPath);
 
-                            Json = Return<List<StringParam>>(1,"",CurrentPexReader.Strings);
+                            Json = Return<List<StringParam>>(1,"",PexReader.Strings);
                         }
                         break;
                     case "SetApiKey":
@@ -362,6 +369,7 @@ namespace SSEATTransCore
                         {
                             try
                             {
+                                //Suitable for translation one by one
                                 var Form = Server.GetPostData(Request);
                                 //Post Payload
                                 string Original = Form["Original"];
