@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
@@ -24,6 +25,37 @@ namespace SSEATTransCore
         public static bool TranslationUnitStartWorkCall(TranslationUnit Item)
         {
             return true;
+        }
+
+        public static void SetCache(string Key,string Value)
+        {
+            lock (Translator.TransDataLocker)
+            {
+                if (Translator.TransData.ContainsKey(Key))
+                {
+                    Translator.TransData[Key] = Value;
+                }
+                else
+                {
+                    Translator.TransData.Add(Key, Value);
+                }
+            }
+        }
+
+        public static bool GetCache(string Key,ref string Value)
+        {
+            lock (Translator.TransDataLocker)
+            {
+                if (Translator.TransData.ContainsKey(Key))
+                {
+                    Value = Translator.TransData[Key];
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
         public static void Init()
         {
