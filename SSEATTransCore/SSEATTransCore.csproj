@@ -38,6 +38,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -65,6 +66,7 @@
     <Compile Include="ServerManagement\ServerHelper.cs" />
     <Compile Include="SkyrimManagement\PexReader.cs" />
     <Compile Include="SkyrimManagement\SkyrimHelper.cs" />
+    <Compile Include="SkyrimManagement\ToolDownloader.cs" />
     <Compile Include="TranslatorExtend.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

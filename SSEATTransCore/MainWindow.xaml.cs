@@ -98,6 +98,29 @@ namespace SSEATTransCore
             }
 
             SetLog("Start WebService:" + "http://localhost:" + CurrentPort + "/SSEAT", DateTime.Now);
+
+
+            ////Test
+            //string PexPath = @"C:\Users\52508\Desktop\TestMod\Simple Mod Item Spawner - ITALIA-144062-1-50-1741524025\scripts\SimpleItemSpawnerMCM.pex";
+            //PexReader.LoadPexFile(PexPath);
+            //string GetJson = JsonHelper.GetJson(PexReader.Strings);
+
+            ////Try Modify Pex
+
+            //if (PexReader.Strings.Count > 0)
+            //{
+            //    var GetFristItem = PexReader.Strings[0];
+
+            //    string Key = GetFristItem.Key;
+            //    string Value = GetFristItem.SourceText;
+            //    string NewValue = "11";
+
+            //    TranslatorExtend.SetCache(Key,NewValue);
+
+            //    //Oh, by the way, I forgot that the path of the saved file and the path of pex itself need to be consistent. Saving it will directly overwrite it.
+            //    //.backup is the backup file
+            //    PexReader.SavePexFile(PexPath);
+            //}
         }
 
 
@@ -107,6 +130,28 @@ namespace SSEATTransCore
         }
         //Json returned after general response request
         //Json {code=1,xxxxxx}
+
+
+        public bool CheckINeed(string ProxyIP)
+        {
+            bool State = true;
+            //Frist Check ToolPath
+            if (!File.Exists(DeFine.GetFullPath(@"Tool\Champollion.exe")))
+            {
+                if (ToolDownloader.DownloadChampollion())
+                {
+                    State = true;
+                }
+            }
+
+            string CompilerPath = "";
+            if (!SkyrimHelper.FindPapyrusCompilerPath(ref CompilerPath))
+            {
+                State = false;
+            }
+            return State;
+        }
+
 
         public object Return(int Code)
         {
@@ -227,14 +272,14 @@ namespace SSEATTransCore
                             var Form = Server.GetPostData(Request);
                             string Key = DeCode(Form["Key"]);
 
-                            lock(Translator.TransDataLocker)
-                            if (Translator.TransData.ContainsKey(Key))
+                            string Value = "";
+                            if (TranslatorExtend.GetCache(Key, ref Value))
                             {
-                                Json = Return(1, Translator.TransData[Key]);
+                                Json = Return(1, Value);
                             }
                             else
                             {
-                                Json = Return(0,string.Empty);
+                                Json = Return(0);
                             }
                         }
                         break;
@@ -244,15 +289,7 @@ namespace SSEATTransCore
                             string Key = DeCode(Form["Key"]);
                             string Value = DeCode(Form["Value"]);
 
-                            lock (Translator.TransDataLocker)
-                            if (Translator.TransData.ContainsKey(Key))
-                            {
-                                Translator.TransData[Key] = Value;
-                            }
-                            else
-                            {
-                                Translator.TransData.Add(Key, Value);
-                            }
+                            TranslatorExtend.SetCache(Key, Value);
 
                             Json = Return(1);
                         }
@@ -437,8 +474,25 @@ namespace SSEATTransCore
                     //Must be called before working.
                     case "InitEngine":
                         {
+                            //Can Use ProxyIP Download Champollion
+                            string GetProxyIP = Request.QueryString.Get("GetProxyIP");
+
                             Engine.Init();
-                            Json = Return(1);
+
+                            if (CheckINeed(GetProxyIP))
+                            {
+                                Json = Return(1);
+                            }
+                            else 
+                            {
+                                Json = Return(0);
+                            }
+
+                            string SetCachePath = DeFine.GetFullPath(@"\Cache");
+                            if (!Directory.Exists(SetCachePath))
+                            {
+                                Directory.CreateDirectory(SetCachePath);
+                            }
                         }
                         break;
                     //http://localhost:11152/SSEAT?Type=CloseService
