@@ -136,14 +136,59 @@ namespace SSEATTransCore
                 {
                     //http://localhost:11152/SSEAT?Type=ReadPexFile (HTTP GET)
                     //Path Payload
+                    case "GetData":
+                        {
+                            var Form = Server.GetPostData(Request);
+                            string Key = Form["Key"];
+
+                            if (Translator.TransData.ContainsKey(Key))
+                            {
+                                Json = Return(1, Translator.TransData[Key]);
+                            }
+                            else
+                            {
+                                Json = Return(0,string.Empty);
+                            }
+                        }
+                        break;
+                    case "SetData":
+                        {
+                            var Form = Server.GetPostData(Request);
+                            string Key = Form["Key"];
+                            string Value = Form["Value"];
+
+                            if (Translator.TransData.ContainsKey(Key))
+                            {
+                                Translator.TransData[Key] = Value;
+                            }
+                            else
+                            {
+                                Translator.TransData.Add(Key, Value);
+                            }
+
+                            Json = Return(1);
+                        }
+                    break;
+                    case "SavePexFile":
+                        {
+                            var Form = Server.GetPostData(Request);
+
+                            //Post Payload
+                            string OutputPath = Form["OutputPath"];
+
+                            CurrentPexReader.SavePexFile(OutputPath);
+
+                            Json = Return(1);
+                        }
+                        break;
                     case "ReadPexFile":
                         {
                             var Form = Server.GetPostData(Request);
 
                             //Post Payload
-                            string Path = Form["Path"];
+                            string InputPath = Form["InputPath"];
 
-                            CurrentPexReader.LoadPexFile(Path);
+                            CurrentPexReader.LoadPexFile(InputPath);
 
                             Json = Return(1,JsonHelper.GetJson(CurrentPexReader.Strings));
                         }
@@ -159,12 +204,36 @@ namespace SSEATTransCore
                             //Post Payload
                             string ApiKey = Form["ApiKey"];
 
-                            //if (PlatformType.Equals("ChatGpt"))
-                            //{
-                            //    EngineConfig.ChatGptKey = ApiKey;
-                            //EngineConfig.ChatGptApiEnable = Enable;
-                            //}
+                            //Configure the key according to the platform
+                            switch (ApiKey)
+                            {
+                                case "ChatGpt":
+                                    {
+                                        EngineConfig.ChatGptKey = ApiKey;
+                                        EngineConfig.ChatGptApiEnable = Enable;
+                                    }
+                                break;
+                                case "Gemini":
+                                    {
+                                        EngineConfig.GeminiKey = ApiKey;
+                                        EngineConfig.GeminiApiEnable = Enable;
+                                    }
+                                break;
+                                case "Cohere":
+                                    {
+                                        EngineConfig.CohereKey = ApiKey;
+                                        EngineConfig.CohereApiEnable = Enable;
+                                    }
+                                break;
+                                case "DeepL":
+                                    {
+                                        EngineConfig.DeepLKey = ApiKey;
+                                        EngineConfig.DeepLApiEnable = Enable;
+                                    }
+                                break;
+                            }
 
+                            EngineConfig.Save();
                             Json = Return(1);
                         }
                         break;
