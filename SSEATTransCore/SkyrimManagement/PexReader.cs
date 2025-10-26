@@ -526,7 +526,7 @@ namespace SSEATTransCore.SkyrimManagement
                     StringParam NStringParam = new StringParam();
                     NStringParam.DefLine = HeuristicEngine.DStringItems[i].SourceLine;
                     NStringParam.SourceText = HeuristicEngine.DStringItems[i].Str;
-                    NStringParam.Key = HeuristicEngine.DStringItems[i].Key + ",Score:" + HeuristicEngine.DStringItems[i].TranslationSafetyScore;
+                    NStringParam.Key = HeuristicEngine.DStringItems[i].Key;
                     NStringParam.TranslationSafetyScore = HeuristicEngine.DStringItems[i].TranslationSafetyScore;
                     NStringParam.EditorID = HeuristicEngine.DStringItems[i].Feature;
                     NStringParam.Type = "Papyrus";
