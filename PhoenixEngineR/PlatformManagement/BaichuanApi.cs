@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using JsonCore;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -133,7 +133,7 @@ namespace PhoenixEngine.PlatformManagement
 
         public BaichuanResult CallAI(BaichuanItem Item,ref string Recv)
         {
-            string GetJson = JsonHelper.GetJson(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.BaichuanKey));
             HttpItem Http = new HttpItem()
@@ -160,7 +160,7 @@ namespace PhoenixEngine.PlatformManagement
             Recv = GetResult;
             try
             {
-                return JsonHelper.ProcessToJson<BaichuanResult>(GetResult);
+                return JsonConvert.DeserializeObject<BaichuanResult>(GetResult);
             }
             catch
             {

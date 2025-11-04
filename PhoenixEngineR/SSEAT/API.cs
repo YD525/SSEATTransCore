@@ -183,7 +183,7 @@ namespace PhoenixEngineR.SSEAT
 
             EngineConfig.Save();
         }
-        public int SetTo(string From,string To)
+        public int SetLang(string From,string To)
         {
             try 
             {

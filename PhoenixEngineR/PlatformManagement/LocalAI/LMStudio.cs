@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using JsonCore;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -26,7 +26,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
             string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + "/v1/chat/completions";
-            string GetJson = JsonHelper.GetJson(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
             HttpItem Http = new HttpItem()
@@ -53,7 +53,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             Recv = GetResult;
             try
             {
-                return JsonHelper.ProcessToJson<OpenAIResponse>(GetResult);
+                return JsonConvert.DeserializeObject<OpenAIResponse>(GetResult);
             }
             catch
             {

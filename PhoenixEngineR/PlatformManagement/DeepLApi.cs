@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using JsonCore;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -41,7 +41,7 @@ namespace PhoenixEngine.PlatformManagement
                 NDeepLItem.target_lang = LanguageHelper.ToLanguageCode(ToLang).ToUpper();
                 NDeepLItem.text = new List<string>() { TransSource };
 
-                string Send = JsonHelper.GetJson(NDeepLItem);
+                string Send = JsonConvert.SerializeObject(NDeepLItem);
                 string Recv = "";
 
                 var GetResult = CallPlatform(NDeepLItem, ref Recv);
@@ -70,7 +70,7 @@ namespace PhoenixEngine.PlatformManagement
         }
         public DeepLResult CallPlatform(DeepLItem Item,ref string Recv)
         {
-            string GetJson = JsonHelper.GetJson(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", EngineConfig.DeepLKey));
             string AutoHost = "";
@@ -107,7 +107,7 @@ namespace PhoenixEngine.PlatformManagement
             Recv = GetResult;
             try
             {
-                return JsonHelper.ProcessToJson<DeepLResult>(GetResult);
+                return JsonConvert.DeserializeObject<DeepLResult>(GetResult);
             }
             catch
             {
