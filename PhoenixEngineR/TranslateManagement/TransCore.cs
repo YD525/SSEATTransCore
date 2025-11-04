@@ -76,18 +76,11 @@ namespace PhoenixEngine.TranslateManage
                 }
 
                 // Cohere support
-                if (EngineConfig.CohereApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.CohereKey))
-                {
-                    EngineSelects.Add(new EngineSelect(new CohereApi(), 1));
-                }
-
-                // Baichuan support
-                if (EngineConfig.BaichuanApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.BaichuanKey))
-                {
-                    EngineSelects.Add(new EngineSelect(new BaichuanApi(), 1));
-                }
+                //if (EngineConfig.CohereApiEnable &&
+                //    !string.IsNullOrWhiteSpace(EngineConfig.CohereKey))
+                //{
+                //    EngineSelects.Add(new EngineSelect(new CohereApi(), 1));
+                //}
 
                 //LocalAI(LM) support
                 if (EngineConfig.LMLocalAIEnable)
@@ -347,7 +340,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
                     else
-                    if (this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is BaichuanApi || this.TransEngine is LMStudio)
+                    if (this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is LMStudio)
                     {
                         bool CanTrans = false;
 
@@ -402,35 +395,35 @@ namespace PhoenixEngine.TranslateManage
                                 }
                             }
                             else
-                            if (this.TransEngine is CohereApi)
-                            {
-                                if (EngineConfig.CohereApiEnable)
-                                {
-                                    AICall Call = new AICall();
+                            //if (this.TransEngine is CohereApi)
+                            //{
+                            //    if (EngineConfig.CohereApiEnable)
+                            //    {
+                            //        AICall Call = new AICall();
 
-                                    var GetData = ((CohereApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                            //        var GetData = ((CohereApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
 
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
-                                    }
-                                    TransText = GetData;
+                            //        if (GetData.Trim().Length > 0 && UseAIMemory)
+                            //        {
+                            //            AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                            //        }
+                            //        TransText = GetData;
 
-                                    CurrentPlatform = PlatformType.Cohere;
+                            //        CurrentPlatform = PlatformType.Cohere;
 
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
+                            //        if (GetData.Trim().Length == 0)
+                            //        {
+                            //            this.CallCountDown = 0;
+                            //        }
 
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
+                            //        Call.Output();
+                            //    }
+                            //    else
+                            //    {
+                            //        this.CallCountDown = 0;
+                            //    }
+                            //}
+                            //else
                             if (this.TransEngine is ChatGptApi)
                             {
                                 if (EngineConfig.ChatGptApiEnable)
@@ -504,35 +497,6 @@ namespace PhoenixEngine.TranslateManage
                                     TransText = GetData;
 
                                     CurrentPlatform = PlatformType.DeepSeek;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.TransEngine is BaichuanApi)
-                            {
-                                if (EngineConfig.BaichuanApiEnable)
-                                {
-                                    AICall Call = new AICall();
-
-                                    var GetData = ((BaichuanApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
-                                    }
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.Baichuan;
 
                                     if (GetData.Trim().Length == 0)
                                     {

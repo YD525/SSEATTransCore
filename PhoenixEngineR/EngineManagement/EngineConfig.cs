@@ -58,9 +58,8 @@ namespace PhoenixEngine.EngineManagement
 
         public static bool ChatGptApiEnable { get; set; } = false;
         public static bool GeminiApiEnable { get; set; } = false;
-        public static bool CohereApiEnable { get; set; } = false;
+        //public static bool CohereApiEnable { get; set; } = false;
         public static bool DeepSeekApiEnable { get; set; } = false;
-        public static bool BaichuanApiEnable { get; set; } = false;
         public static bool GoogleYunApiEnable { get; set; } = false;
         public static bool LMLocalAIEnable { get; set; } = false;
         public static bool DeepLApiEnable { get; set; } = false;
@@ -109,20 +108,10 @@ namespace PhoenixEngine.EngineManagement
         /// </summary>
         public static string DeepSeekModel { get; set; } = "deepseek-chat";
 
-        /// <summary>
-        /// Baichuan API key.
-        /// </summary>
-        public static string BaichuanKey { get; set; } = "";
-
-        /// <summary>
-        /// Model name for Baichuan (e.g., Baichuan4-Turbo).
-        /// </summary>
-        public static string BaichuanModel { get; set; } = "Baichuan4-Turbo";
-
-        /// <summary>
-        /// Cohere API key.
-        /// </summary>
-        public static string CohereKey { get; set; } = "";
+        ///// <summary>
+        ///// Cohere API key.
+        ///// </summary>
+        //public static string CohereKey { get; set; } = "";
 
         /// <summary>
         /// DeepL Translate API key.
@@ -198,11 +187,7 @@ namespace PhoenixEngine.EngineManagement
 
             AutoThread += EngineConfig.GeminiApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.GeminiKey) ? 2 : 0;
 
-            AutoThread += EngineConfig.CohereApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.CohereKey) ? 2 : 0;
-
             AutoThread += EngineConfig.DeepSeekApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.DeepSeekKey) ? 2 : 0;
-
-            AutoThread += EngineConfig.BaichuanApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.BaichuanKey) ? 2 : 0;
 
             AutoThread += EngineConfig.LMLocalAIEnable ? 2 : 0;
 
@@ -256,9 +241,7 @@ namespace PhoenixEngine.EngineManagement
 
                 Writer.Write(ChatGptApiEnable);
                 Writer.Write(GeminiApiEnable);
-                Writer.Write(CohereApiEnable);
                 Writer.Write(DeepSeekApiEnable);
-                Writer.Write(BaichuanApiEnable);
                 Writer.Write(GoogleYunApiEnable);
                 Writer.Write(LMLocalAIEnable);
                 Writer.Write(DeepLApiEnable);
@@ -270,9 +253,6 @@ namespace PhoenixEngine.EngineManagement
                 Writer.Write(GeminiModel ?? "");
                 Writer.Write(DeepSeekKey ?? "");
                 Writer.Write(DeepSeekModel ?? "");
-                Writer.Write(BaichuanKey ?? "");
-                Writer.Write(BaichuanModel ?? "");
-                Writer.Write(CohereKey ?? "");
                 Writer.Write(DeepLKey ?? "");
                 Writer.Write(IsFreeDeepL);
 
@@ -330,9 +310,7 @@ namespace PhoenixEngine.EngineManagement
 
                     ChatGptApiEnable = Reader.ReadBoolean();
                     GeminiApiEnable = Reader.ReadBoolean();
-                    CohereApiEnable = Reader.ReadBoolean();
                     DeepSeekApiEnable = Reader.ReadBoolean();
-                    BaichuanApiEnable = Reader.ReadBoolean();
                     GoogleYunApiEnable = Reader.ReadBoolean();
                     LMLocalAIEnable = Reader.ReadBoolean();
                     DeepLApiEnable = Reader.ReadBoolean();
@@ -344,9 +322,6 @@ namespace PhoenixEngine.EngineManagement
                     GeminiModel = Reader.ReadString();
                     DeepSeekKey = Reader.ReadString();
                     DeepSeekModel = Reader.ReadString();
-                    BaichuanKey = Reader.ReadString();
-                    BaichuanModel = Reader.ReadString();
-                    CohereKey = Reader.ReadString();
                     DeepLKey = Reader.ReadString();
                     IsFreeDeepL = Reader.ReadBoolean();
 
