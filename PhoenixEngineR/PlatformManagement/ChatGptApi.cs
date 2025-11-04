@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using JsonCore;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -70,7 +70,7 @@ namespace PhoenixEngine.PlatformManagement
         public ChatGptRootobject CallAI(ChatGptItem Item,ref string Recv)
         {
             //GetModes();
-            string GetJson = JsonHelper.GetJson(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.ChatGptKey));
             HttpItem Http = new HttpItem()
@@ -97,7 +97,7 @@ namespace PhoenixEngine.PlatformManagement
             Recv = GetResult;
             try
             {    
-                return JsonHelper.ProcessToJson<ChatGptRootobject>(GetResult);
+                return JsonConvert.DeserializeObject<ChatGptRootobject>(GetResult);
             }
             catch 
             {

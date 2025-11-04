@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using JsonCore;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -148,7 +148,7 @@ namespace PhoenixEngine.PlatformManagement
 
         public DeepSeekRootobject CallAI(DeepSeekItem Item, ref string Recv)
         {
-            string GetJson = JsonHelper.GetJson(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.DeepSeekKey));
             HttpItem Http = new HttpItem()
@@ -175,7 +175,7 @@ namespace PhoenixEngine.PlatformManagement
             Recv = GetResult;
             try
             {  
-                return JsonHelper.ProcessToJson<DeepSeekRootobject>(GetResult);
+                return JsonConvert.DeserializeObject<DeepSeekRootobject>(GetResult);
             }
             catch 
             {
