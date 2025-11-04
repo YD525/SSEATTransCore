@@ -57,12 +57,12 @@ namespace PhoenixEngineR.SSEAT
                         EngineConfig.GeminiApiEnable = Enable;
                     }
                     break;
-                case "Cohere":
-                    {
-                        EngineConfig.CohereKey = ApiKey;
-                        EngineConfig.CohereApiEnable = Enable;
-                    }
-                    break;
+                //case "Cohere":
+                //    {
+                //        EngineConfig.CohereKey = ApiKey;
+                //        EngineConfig.CohereApiEnable = Enable;
+                //    }
+                //    break;
                 case "DeepL":
                     {
                         EngineConfig.DeepLKey = ApiKey;
@@ -94,13 +94,13 @@ namespace PhoenixEngineR.SSEAT
 
                     }
                     break;
-                case "Baichuan":
-                    {
-                        EngineConfig.BaichuanKey = ApiKey;
-                        EngineConfig.BaichuanModel = AIModel;
-                        EngineConfig.BaichuanApiEnable = Enable;
-                    }
-                    break;
+                //case "Baichuan":
+                //    {
+                //        EngineConfig.BaichuanKey = ApiKey;
+                //        EngineConfig.BaichuanModel = AIModel;
+                //        EngineConfig.BaichuanApiEnable = Enable;
+                //    }
+                //    break;
             }
 
             EngineConfig.Save();

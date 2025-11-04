@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Cohere;
+﻿
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.TranslateCore;
@@ -16,101 +9,101 @@ using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngineR.PlatformManagement
 {
-    public class CohereHelper
-    {
-        private readonly CohereClient _Client;
+    //public class CohereHelper
+    //{
+    //    private readonly CohereClient _Client;
 
-        public CohereHelper(string ApiKey)
-        {
-            var Handler = new HttpClientHandler
-            {
-                Proxy = ProxyCenter.CurrentProxy,
-                UseProxy = ProxyCenter.CurrentProxy != null,
-            };
+    //    public CohereHelper(string ApiKey)
+    //    {
+    //        var Handler = new HttpClientHandler
+    //        {
+    //            Proxy = ProxyCenter.CurrentProxy,
+    //            UseProxy = ProxyCenter.CurrentProxy != null,
+    //        };
 
-            var HttpClient = new HttpClient(Handler, true)
-            {
-                Timeout = TimeSpan.FromMilliseconds(EngineConfig.GlobalRequestTimeOut)
-            };
+    //        var HttpClient = new HttpClient(Handler, true)
+    //        {
+    //            Timeout = TimeSpan.FromMilliseconds(EngineConfig.GlobalRequestTimeOut)
+    //        };
 
-            _Client = new CohereClient(ApiKey, HttpClient);
-        }
+    //        _Client = new CohereClient(ApiKey, HttpClient);
+    //    }
 
-        public string GenerateText(string prompt, ref string Recv)
-        {
-            var Request = new GenerateRequest
-            {
-                Prompt = prompt
-            };
+    //    public string GenerateText(string prompt, ref string Recv)
+    //    {
+    //        var Request = new GenerateRequest
+    //        {
+    //            Prompt = prompt
+    //        };
 
-            var Response = _Client.GenerateAsync(Request).GetAwaiter().GetResult();
+    //        var Response = _Client.GenerateAsync(Request).GetAwaiter().GetResult();
 
-            if (Response?.Generations != null)
-            {
-                Recv = JsonSerializer.Serialize(Response.Generations);
-            }
+    //        if (Response?.Generations != null)
+    //        {
+    //            Recv = JsonSerializer.Serialize(Response.Generations);
+    //        }
 
-            if (Response?.Generations != null && Response.Generations.Count > 0)
-            {
-                return Response.Generations[0].Text;
-            }
-            return string.Empty;
-        }
-    }
-    public class CohereApi
-    {
-        //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(List<string> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type)
-        {
-            List<string> Related = new List<string>();
+    //        if (Response?.Generations != null && Response.Generations.Count > 0)
+    //        {
+    //            return Response.Generations[0].Text;
+    //        }
+    //        return string.Empty;
+    //    }
+    //}
+    //public class CohereApi
+    //{
+    //    //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
+    //    public string QuickTrans(List<string> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type)
+    //    {
+    //        List<string> Related = new List<string>();
 
-            if (EngineConfig.ContextEnable && UseAIMemory)
-            {
-                Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
-            }
+    //        if (EngineConfig.ContextEnable && UseAIMemory)
+    //        {
+    //            Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
+    //        }
 
-            if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
-            {
-                AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
-            }
+    //        if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
+    //        {
+    //            AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
+    //        }
 
-            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
+    //        var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
 
-            string Send = GetTransSource;
-            string Recv = "";
-            var GetResult = CallAI(Send, ref Recv);
+    //        string Send = GetTransSource;
+    //        string Recv = "";
+    //        var GetResult = CallAI(Send, ref Recv);
 
-            Call = new AICall(PlatformType.Cohere, Send, Recv);
+    //        Call = new AICall(PlatformType.Cohere, Send, Recv);
 
-            if (GetResult != null)
-            {
-                if (GetResult.Trim().Length > 0)
-                {
-                    if (GetResult.Trim().Equals("<translated_text>"))
-                    {
-                        return string.Empty;
-                    }
+    //        if (GetResult != null)
+    //        {
+    //            if (GetResult.Trim().Length > 0)
+    //            {
+    //                if (GetResult.Trim().Equals("<translated_text>"))
+    //                {
+    //                    return string.Empty;
+    //                }
 
-                    Call.Success = true;
+    //                Call.Success = true;
 
-                    return GetResult;
-                }
-            }
-            return string.Empty;
-        }
+    //                return GetResult;
+    //            }
+    //        }
+    //        return string.Empty;
+    //    }
 
-        public string CallAI(string Msg, ref string Recv)
-        {
-            try
-            {
-                var Cohere = new CohereHelper(EngineConfig.CohereKey);
-                string Result = Cohere.GenerateText(Msg, ref Recv);
-                return JsonGeter.GetValue(Result);
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-    }
+    //    public string CallAI(string Msg, ref string Recv)
+    //    {
+    //        try
+    //        {
+    //            var Cohere = new CohereHelper(EngineConfig.CohereKey);
+    //            string Result = Cohere.GenerateText(Msg, ref Recv);
+    //            return JsonGeter.GetValue(Result);
+    //        }
+    //        catch
+    //        {
+    //            return string.Empty;
+    //        }
+    //    }
+    //}
 }
