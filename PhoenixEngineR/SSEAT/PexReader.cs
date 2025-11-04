@@ -555,6 +555,11 @@ namespace PhoenixEngineR.SSEAT
             return RichText;
         }
 
+        public string RemoveCrlf(string Msg)
+        {
+            return Msg.Replace("\r\n", ".").Replace("\n", ".");
+        }
+
         public bool SavePexFile(string OutPutPath)
         {
             TranslatorExtend.ClearTranslatorHistoryCache();
@@ -599,7 +604,7 @@ namespace PhoenixEngineR.SSEAT
                                 {
                                     if (Lines[ir].Contains(GetOriginal))
                                     {
-                                        Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + GetTranslated + "\"");
+                                        Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + RemoveCrlf(GetTranslated) + "\"");
                                     }
                                 }
                                 else
@@ -610,8 +615,6 @@ namespace PhoenixEngineR.SSEAT
                                     {
                                         //Get the original key
                                         string QueryKey = LinkTexts[i].DefKey;
-
-                                        QueryKey = QueryKey.Substring(0, QueryKey.LastIndexOf(","));
 
                                         foreach (var GetItem in HeuristicEngine.DStringItems)
                                         {
@@ -639,7 +642,7 @@ namespace PhoenixEngineR.SSEAT
                                                     //To prevent the method from having two identical parameters, you can actually determine the position of the parameter. This is currently simplified. However, there are problems. I wrote it this way because I was lazy.
                                                     if (Count < 2)
                                                     {
-                                                        Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + GetTranslated + "\"");
+                                                        Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + RemoveCrlf(GetTranslated) + "\"");
                                                     }
                                                 }
                                             }
