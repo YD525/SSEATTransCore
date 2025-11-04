@@ -28,7 +28,7 @@ namespace PhoenixEngineR.SSEAT
                 Directory.CreateDirectory(SetCachePath);
             }
         }
-        public static void SetApiKey(string ApiKey, string AIModel, int EnableState, int IsFreeDeepL, int LocalAIPort)
+        public void SetApiKey(string ApiKey, string AIModel, int EnableState, int IsFreeDeepL, int LocalAIPort)
         {
             bool FreeDeepLEnable = false;
             if (IsFreeDeepL == 1)
@@ -108,14 +108,14 @@ namespace PhoenixEngineR.SSEAT
         }
 
         #region JsonGetter
-        public static string GetValue(string Json,string Name)
+        public string GetValue(string Json,string Name)
         {
             return JsonGeter.GetValue(Json,Name);
         }
         #endregion
 
         #region Translation
-        public static int StartBatchTranslation()
+        public int StartBatchTranslation()
         {
             if (Engine.From != Languages.Null && Engine.To != Languages.Null)
             {
@@ -124,7 +124,7 @@ namespace PhoenixEngineR.SSEAT
 
             return 0;
         }
-        public static int ControlBatchTranslationState(int State)
+        public int ControlBatchTranslationState(int State)
         {
             bool PauseState = false;
 
@@ -134,11 +134,11 @@ namespace PhoenixEngineR.SSEAT
             }
             return Engine.Stop(PauseState);
         }
-        public static int CloseBatchTranslation()
+        public int CloseBatchTranslation()
         {
             return Engine.End();
         }
-        public static string Dequeue()
+        public string Dequeue()
         {
             bool IsEnd = false;
             var GetUnit = Engine.DequeueTranslated(ref IsEnd);
@@ -154,7 +154,7 @@ namespace PhoenixEngineR.SSEAT
                 return Bridge.GetJson(Bridge.Return<TranslationUnit>(0, "", GetUnit));
             }
         }
-        public static int Enqueue(string FileName, string Key, string Type, string Original, string AIParam)
+        public int Enqueue(string FileName, string Key, string Type, string Original, string AIParam)
         {
             TranslationUnit Unit = new TranslationUnit(
             FileName.GetHashCode(),
@@ -172,18 +172,18 @@ namespace PhoenixEngineR.SSEAT
 
             return GetEnqueueCount;
         }
-        public static int GetWorkingThreadCount()
+        public int GetWorkingThreadCount()
         {
             return Engine.GetThreadCount();
         }
-        public static void SetThread(int ThreadCount)
+        public void SetThread(int ThreadCount)
         {
             EngineConfig.MaxThreadCount = ThreadCount;
             EngineConfig.AutoSetThreadLimit = false;
 
             EngineConfig.Save();
         }
-        public static int SetTo(string From,string To)
+        public int SetTo(string From,string To)
         {
             try 
             {
@@ -198,7 +198,7 @@ namespace PhoenixEngineR.SSEAT
                 return -1; 
             }
         }
-        public static void Config(string ProxyUrl,bool ContextEnable,int ContextLimit)
+        public void Config(string ProxyUrl,bool ContextEnable,int ContextLimit)
         { 
             EngineConfig.ProxyUrl = ProxyUrl;
             EngineConfig.ContextEnable = ContextEnable;
@@ -206,7 +206,7 @@ namespace PhoenixEngineR.SSEAT
 
             EngineConfig.Save();
         }
-        public static string TranslateV1(string Original)
+        public string TranslateV1(string Original)
         {
             try
             {
@@ -285,6 +285,7 @@ namespace PhoenixEngineR.SSEAT
 
             return 0;
         }
+
         #endregion
 
     }

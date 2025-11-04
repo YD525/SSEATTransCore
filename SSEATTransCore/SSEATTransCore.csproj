@@ -64,9 +64,6 @@
     <Compile Include="DelegateManagement\DelegateHelper.cs" />
     <Compile Include="FileManagement\DataHelper.cs" />
     <Compile Include="ServerManagement\ServerHelper.cs" />
-    <Compile Include="SkyrimManagement\PexReader.cs" />
-    <Compile Include="SkyrimManagement\SkyrimHelper.cs" />
-    <Compile Include="SkyrimManagement\ToolDownloader.cs" />
     <Compile Include="TranslatorExtend.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

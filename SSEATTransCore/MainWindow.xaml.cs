@@ -11,10 +11,10 @@ using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngineR.SSEAT;
 using PhoenixEngineR.TranslateManage;
 using SSEATTransCore.DelegateManagement;
 using SSEATTransCore.ServerManagement;
-using SSEATTransCore.SkyrimManagement;
 
 namespace SSEATTransCore
 {
