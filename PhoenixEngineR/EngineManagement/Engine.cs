@@ -133,7 +133,7 @@ FROM (
             Start(false);
         }
 
-        public static void Start(bool ClearCache)
+        public static int Start(bool ClearCache)
         {
             if (From != Languages.Null && To != Languages.Null)
             {
@@ -144,30 +144,38 @@ FROM (
                 }
 
                 TranslationCore.Start();
+                return 1;
             }
+
+            return -1;
         }
 
-        public static void Stop(bool State)
+        public static int Stop(bool State)
         {
             if (TranslationCore != null)
             {
                 if (State)
                 {
                     TranslationCore.Stop();
+                    return 1;
                 }
                 else
                 {
                     TranslationCore.Keep();
+                    return 0;
                 }
             }
+            return -1;
         }
 
-        public static void End()
+        public static int End()
         {
             if (TranslationCore != null)
             {
                 TranslationCore.Close();
+                return 1;
             }
+            return 0;
         }
 
         public static int GetThreadCount()
