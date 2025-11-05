@@ -115,6 +115,18 @@ namespace PhoenixEngineR.SSEAT
         #endregion
 
         #region Translation
+
+        /// <summary>
+        /// Search the database for any files that contain a matching, usable translated text.
+        /// </summary>
+        /// <param name="Source"></param>
+        /// <returns></returns>
+        public string SearchDataBase(string Source)
+        {
+            return Bridge.GetJson(Bridge.Return<List<CloudTranslationItem>>(0, "", 
+                CloudDBCache.MatchCloudItem((int)Engine.To, Source, 100)));
+        }
+
         public int StartBatchTranslation()
         {
             if (Engine.From != Languages.Null && Engine.To != Languages.Null)

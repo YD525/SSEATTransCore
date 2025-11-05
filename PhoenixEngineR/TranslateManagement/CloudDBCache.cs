@@ -1,39 +1,85 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngineR.DataBaseManagement;
 
 namespace PhoenixEngine.TranslateCore
 {
+    public class CloudTranslationItem
+    {
+        public int FileUniqueKey = 0;
+        public string Key = "";
+        public int To = 0;
+        public string Source = "";
+        public string Result = "";
+
+        public CloudTranslationItem(object FileUniqueKey, object Key, object To, object Source, object Result)
+        {
+            this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
+            this.Key = ConvertHelper.ObjToStr(Key);
+            this.To = ConvertHelper.ObjToInt(To);
+            this.Source = ConvertHelper.ObjToStr(Source);
+            this.Result = ConvertHelper.ObjToStr(Result);
+        }
+    }
+
     public class CloudDBCache
     {
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='CloudTranslation';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
-
-            if (Result == null || Result == DBNull.Value)
-            {
-                string CreateTableSql = @"
+            string TableName = "CloudTranslation";
+            string CreateSql = @"
 CREATE TABLE [CloudTranslation](
   [FileUniqueKey] INT, 
   [Key] TEXT, 
   [To] INT, 
+  [Source] TEXT,
   [Result] TEXT
 );";
-                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+
+            // Check if table exists
+            string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
+            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+
+            if (Result != null && Result != DBNull.Value)
+            {
+                // Table exists, check structure
+                DataTable Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                var ExistingCols = new HashSet<string>(
+                    Columns.AsEnumerable().Select(R => R["name"].ToString()),
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+                string[] ExpectedCols = { "FileUniqueKey", "Key", "To", "Source", "Result" };
+                bool StructureChanged =
+                    ExistingCols.Count != ExpectedCols.Length ||
+                    ExpectedCols.Any(C => !ExistingCols.Contains(C));
+
+                if (StructureChanged)
+                {
+                    Engine.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                }
+            }
+            else
+            {
+                // Create if not exists
+                Engine.LocalDB.ExecuteNonQuery(CreateSql);
             }
         }
 
-        public static bool DeleteCache(int FileUniqueKey,string Key,Languages TargetLanguage)
+        public static bool DeleteCache(int FileUniqueKey, string Key, Languages TargetLanguage)
         {
             try
             {
                 string SqlOrder = "Delete From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key,(int)TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage));
 
-                if (State!=0)
+                if (State != 0)
                 {
                     return true;
                 }
@@ -44,76 +90,138 @@ CREATE TABLE [CloudTranslation](
         }
         public static string FindCache(int FileUniqueKey, string Key, Languages TargetLanguage)
         {
-            try { 
-            string SqlOrder = "Select Result From CloudTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}";
-
-            string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key,(int)TargetLanguage)));
-
-            if (GetResult.Trim().Length > 0)
+            try
             {
-                return System.Web.HttpUtility.HtmlDecode(GetResult);
-            }
+                string SqlOrder = "Select Result From CloudTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-            return string.Empty;
+                string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
+
+                if (GetResult.Trim().Length > 0)
+                {
+                    return SqlSafeCodec.Decode(GetResult);
+                }
+
+                return string.Empty;
             }
             catch { return string.Empty; }
         }
 
-        public static bool AddCache(int FileUniqueKey, string Key, int To,string Result)
+        public static bool AddCache(int FileUniqueKey, string Key, int To, string Source, string Result)
         {
-            try {
-
-            int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key,To)));
-
-            if (GetRowID < 0)
+            try
             {
-                string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Result])Values({0},'{1}',{2},'{3}')";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, System.Web.HttpUtility.HtmlEncode(Result)));
+                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
-                if (State != 0)
+                if (GetRowID <= 0)
                 {
-                    return true;
+                    string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Source],[Result])Values({0},'{1}',{2},'{3}','{4}')";
+
+                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, SqlSafeCodec.Encode(Source), SqlSafeCodec.Encode(Result)));
+
+                    if (State != 0)
+                    {
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 return false;
             }
-
-            return false;
-            }
             catch { return false; }
         }
 
-
-        public static string FindCacheAndID(int FileUniqueKey, string Key, int To,ref int ID)
+        public static List<CloudTranslationItem> MatchCloudItem(int To, string Source, int Limit = 5)
         {
-            try { 
-            string SqlOrder = "Select Rowid,Result From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
-
-            DataTable GetResult = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,FileUniqueKey,Key,To));
-
-            if (GetResult.Rows.Count > 0)
+            try
             {
-                string GetStr = System.Web.HttpUtility.HtmlDecode(ConvertHelper.ObjToStr(GetResult.Rows[0]["Result"]));
-                ID = ConvertHelper.ObjToInt(GetResult.Rows[0]["Rowid"]);
-                return GetStr;
-            }
+                List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
-            return string.Empty;
+                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
+                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                if (NTable.Rows.Count > 0)
+                {
+                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    {
+                        CloudTranslationItems.Add(new CloudTranslationItem(
+                            NTable.Rows[i]["FileUniqueKey"],
+                            NTable.Rows[i]["Key"],
+                            NTable.Rows[i]["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
+                            ));
+                    }
+                }
+
+                return CloudTranslationItems;
             }
-            catch {return string.Empty; }
+            catch { }
+
+            return new List<CloudTranslationItem>();
+        }
+
+        public static List<CloudTranslationItem> MatchOtherCloudItem(int Rowid, int To, string Source, int Limit = 5)
+        {
+            try
+            {
+                List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
+
+                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' And Rowid != {2} Limit 5";
+                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source), Rowid));
+                if (NTable.Rows.Count > 0)
+                {
+                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    {
+                        CloudTranslationItems.Add(new CloudTranslationItem(
+                            NTable.Rows[i]["FileUniqueKey"],
+                            NTable.Rows[i]["Key"],
+                            NTable.Rows[i]["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
+                            ));
+                    }
+                }
+
+                return CloudTranslationItems;
+            }
+            catch { }
+
+            return new List<CloudTranslationItem>();
+        }
+
+
+        public static string FindCacheAndID(int FileUniqueKey, string Key, int To, ref int ID)
+        {
+            try
+            {
+                string SqlOrder = "Select Rowid,Result From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
+
+                DataTable GetResult = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key, To));
+
+                if (GetResult.Rows.Count > 0)
+                {
+                    string GetStr = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(GetResult.Rows[0]["Result"]));
+                    ID = ConvertHelper.ObjToInt(GetResult.Rows[0]["Rowid"]);
+                    return GetStr;
+                }
+
+                return string.Empty;
+            }
+            catch { return string.Empty; }
         }
 
         public static bool DeleteCacheByID(int Rowid)
         {
-            try {
-            string SqlOrder = "Delete From CloudTranslation Where Rowid = {0}";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
-            if (State != 0)
+            try
             {
-                return true;
-            }
-            return false;
+                string SqlOrder = "Delete From CloudTranslation Where Rowid = {0}";
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, Rowid));
+                if (State != 0)
+                {
+                    return true;
+                }
+                return false;
             }
             catch { return false; }
         }
