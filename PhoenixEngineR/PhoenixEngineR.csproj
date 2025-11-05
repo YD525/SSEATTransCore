@@ -68,6 +68,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
     <Compile Include="SSEAT\API.cs" />
     <Compile Include="ConvertManagement\ConvertHelper.cs" />
     <Compile Include="DataBaseManagement\PageHelper.cs" />
