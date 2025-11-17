@@ -591,23 +591,44 @@ namespace PhoenixEngineR.SSEAT
 
                     TranslationPreprocessor.NormalizePunctuation(ref GetTranslated);
 
-                    for (int ir = 0; ir < Lines.Count; ir++)
-                    {
-                        try
-                        {
-                            string GetLine = Lines[ir];
-                            if (GetLine.Contains("@line"))
-                            {
-                                string CheckID = GetLine.Substring(GetLine.IndexOf("@line") + "@line".Length).Trim();
+                    int Modify = 0;
 
-                                if (CheckID.Equals(LinkTexts[i].DefLineID.ToString()))
+                    if (Modify == 0)
+                    {
+                        for (int ir = 0; ir < Lines.Count; ir++)
+                        {
+                            try
+                            {
+                                string GetLine = Lines[ir];
+                                if (GetLine.Contains("@line"))
                                 {
-                                    if (Lines[ir].Contains(GetOriginal))
+                                    string CheckID = GetLine.Substring(GetLine.IndexOf("@line") + "@line".Length).Trim();
+
+                                    if (CheckID.Equals(LinkTexts[i].DefLineID.ToString()))
                                     {
-                                        Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + RemoveCrlf(GetTranslated) + "\"");
+                                        if (Lines[ir].Contains(GetOriginal))
+                                        {
+                                            Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + RemoveCrlf(GetTranslated) + "\"");
+                                            Modify++;
+                                            break;
+                                        }
                                     }
                                 }
-                                else
+                            }
+                            catch (Exception Ex)
+                            {
+
+                            }
+                        }
+                    }
+                    if (Modify == 0)
+                    {
+                        for (int ir = 0; ir < Lines.Count; ir++)
+                        {
+                            try
+                            {
+                                string GetLine = Lines[ir];
+                                if (GetLine.Contains("@line"))
                                 {
                                     //Some methods are missing the "@line" field. The specific reason is unclear. Here, you need to check whether the method name is consistent.
 
@@ -643,6 +664,8 @@ namespace PhoenixEngineR.SSEAT
                                                     if (Count < 2)
                                                     {
                                                         Lines[ir] = Lines[ir].Replace("\"" + GetOriginal + "\"", "\"" + RemoveCrlf(GetTranslated) + "\"");
+                                                        Modify++;
+                                                        break;
                                                     }
                                                 }
                                             }
@@ -650,10 +673,10 @@ namespace PhoenixEngineR.SSEAT
                                     }
                                 }
                             }
-                        }
-                        catch (Exception Ex)
-                        {
+                            catch (Exception Ex)
+                            {
 
+                            }
                         }
                     }
                 }
