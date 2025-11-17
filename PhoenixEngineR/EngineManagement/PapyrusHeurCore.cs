@@ -703,7 +703,7 @@ namespace SSELex.SkyrimManage
                     GetFuncIndex = FuncIndex[SetKey];
                 }
 
-                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + "," + DStringItems[i].TranslationSafetyScore + "," + MergeVariables + GetFuncIndex);
+                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + "," + DStringItems[i].TranslationSafetyScore + "," + MergeVariables) + "-" + GetFuncIndex.ToString();
                 DStringItems[i].FromIDELineID = i;
             }
 
