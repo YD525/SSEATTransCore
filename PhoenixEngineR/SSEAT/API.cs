@@ -13,7 +13,7 @@ using PhoenixEngineR.TranslateManage;
 
 namespace PhoenixEngineR.SSEAT
 {
-    
+
     public class API
     {
         private PexReader PexReader = null;
@@ -28,6 +28,16 @@ namespace PhoenixEngineR.SSEAT
                 Directory.CreateDirectory(SetCachePath);
             }
         }
+
+        /// <summary>
+        /// Set the root directory of the folder where the program is located.
+        /// </summary>
+        /// <param name="StartupPath"></param>
+        public void SetStartupPath(string StartupPath)
+        {
+            Bridge.StartupPath = StartupPath;
+        }
+
         public void SetApiKey(string ApiKey, string AIModel, int EnableState, int IsFreeDeepL, int LocalAIPort)
         {
             bool FreeDeepLEnable = false;
@@ -94,13 +104,13 @@ namespace PhoenixEngineR.SSEAT
 
                     }
                     break;
-                //case "Baichuan":
-                //    {
-                //        EngineConfig.BaichuanKey = ApiKey;
-                //        EngineConfig.BaichuanModel = AIModel;
-                //        EngineConfig.BaichuanApiEnable = Enable;
-                //    }
-                //    break;
+                    //case "Baichuan":
+                    //    {
+                    //        EngineConfig.BaichuanKey = ApiKey;
+                    //        EngineConfig.BaichuanModel = AIModel;
+                    //        EngineConfig.BaichuanApiEnable = Enable;
+                    //    }
+                    //    break;
             }
 
             EngineConfig.Save();
@@ -108,9 +118,9 @@ namespace PhoenixEngineR.SSEAT
         }
 
         #region JsonGetter
-        public string GetValue(string Json,string Name)
+        public string GetValue(string Json, string Name)
         {
-            return JsonGeter.GetValue(Json,Name);
+            return JsonGeter.GetValue(Json, Name);
         }
         #endregion
 
@@ -123,7 +133,7 @@ namespace PhoenixEngineR.SSEAT
         /// <returns></returns>
         public string SearchDataBase(string Source)
         {
-            return Bridge.GetJson(Bridge.Return<List<CloudTranslationItem>>(0, "", 
+            return Bridge.GetJson(Bridge.Return<List<CloudTranslationItem>>(0, "",
                 CloudDBCache.MatchCloudItem((int)Engine.To, Source, 100)));
         }
 
@@ -195,23 +205,23 @@ namespace PhoenixEngineR.SSEAT
 
             EngineConfig.Save();
         }
-        public int SetLang(string From,string To)
+        public int SetLang(string From, string To)
         {
-            try 
+            try
             {
                 Engine.From = LanguageHelper.FromLanguageCode(From);
                 Engine.To = LanguageHelper.FromLanguageCode(To);
 
                 return 1;
 
-            } 
-            catch 
-            { 
-                return -1; 
+            }
+            catch
+            {
+                return -1;
             }
         }
-        public void Config(string ProxyUrl,bool ContextEnable,int ContextLimit)
-        { 
+        public void Config(string ProxyUrl, bool ContextEnable, int ContextLimit)
+        {
             EngineConfig.ProxyUrl = ProxyUrl;
             EngineConfig.ContextEnable = ContextEnable;
             EngineConfig.ContextLimit = ContextLimit;
@@ -268,8 +278,8 @@ namespace PhoenixEngineR.SSEAT
         private string LastSetInputPath = "";
         public string ReadPexFile(string InputPath)
         {
-            try 
-            { 
+            try
+            {
                 LastSetInputPath = InputPath;
                 PexReader?.LoadPexFile(InputPath);
                 return Bridge.GetJson(Bridge.Return<List<StringParam>>(1, "", PexReader.Strings));
@@ -283,13 +293,13 @@ namespace PhoenixEngineR.SSEAT
         {
             if (File.Exists(LastSetInputPath) && LastSetInputPath.Length > 0)
             {
-                try 
+                try
                 {
                     PexReader.SavePexFile(LastSetInputPath);
                     LastSetInputPath = string.Empty;
                     return 1;
-                } 
-                catch 
+                }
+                catch
                 {
                     return -1;
                 }

@@ -52,9 +52,11 @@ namespace PhoenixEngineR.SSEAT
         {
             return JsonConvert.SerializeObject(Any);
         }
+
+        public static string StartupPath = "";
         public static string GetFullPath(string Path)
         {
-            string GetShellPath = System.Windows.Forms.Application.StartupPath;
+            string GetShellPath = StartupPath;
             if (GetShellPath.EndsWith(@"\"))
             {
                 GetShellPath = GetShellPath.Substring(0, GetShellPath.Length - 1);
