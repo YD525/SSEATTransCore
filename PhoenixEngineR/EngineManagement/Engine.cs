@@ -14,7 +14,7 @@ namespace PhoenixEngine.EngineManagement
 {
     public class Engine
     {
-        public static string Version = "1.1.7-Lite";
+        public static string Version = "1.1.71 - Lite";
         public static string CurrentPath = "";
         /// <summary>
         /// Instance of the local SQLite database helper.
@@ -186,6 +186,27 @@ FROM (
             }
 
             return 0;
+        }
+
+        public static void InitTranslationCore(Languages From, Languages To)
+        {
+            TranslationCore = new BatchTranslationCore(From, To, new List<TranslationUnit>() { });
+        }
+        public static void ClearUnits()
+        {
+            if (TranslationCore != null)
+            {
+                TranslationCore.UnitsToTranslate.Clear();
+            }
+        }
+        public static int GetUnitCount()
+        {
+            if (TranslationCore != null)
+            {
+                return TranslationCore.UnitsToTranslate.Count;
+            }
+
+            return -1;
         }
 
         private static object AddTranslationUnitLocker = new object();
