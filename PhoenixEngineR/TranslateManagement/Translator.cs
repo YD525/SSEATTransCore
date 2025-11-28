@@ -115,6 +115,13 @@ namespace PhoenixEngine.TranslateManage
 
         public static string QuickTrans(TranslationUnit Item, ref bool CanSleep,bool IsBook = false)
         {
+            Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
+
+            if (Regex.IsMatch(Item.SourceText))
+            {
+                Item.SourceText = Regex.Replace(Item.SourceText, @"$$$$$1$$$$");
+            }
+
             string GetSourceStr = Item.SourceText;
             string Content = Item.SourceText;
 
