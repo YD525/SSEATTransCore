@@ -8,7 +8,7 @@ namespace SSELex.SkyrimManage
 {
     public class PapyrusHeurCore
     {
-        public static string Version = "1.5Beta";
+        public static string Version = "1.6Beta";
         public List<ParsingItem> ParsingItems = new List<ParsingItem>();
         public FunctionFinder CurrentFunctionFinder = new FunctionFinder();
         public static List<string> SafePapyrusFuncs = new List<string>() { "SetInfoText", "NotifyActor", "Warn", "messageBox", "messagebox", "Messagebox", "Log", "NotifyPlayer", "NotifyNPC", "Message", "ecSlider", "ecToggle", "TextUpdate" };
@@ -58,7 +58,8 @@ namespace SSELex.SkyrimManage
            new MethodParam("AddTextOptionST",1),//SkyUI Api
            new MethodParam("AddToggleOption",0),//SkyUI Api
            new MethodParam("AddToggleOptionST",1),//SkyUI Api
-           new MethodParam("SetGameSettingString",1)//?? Api
+           new MethodParam("SetGameSettingString",1),//?? Api
+           new MethodParam("ShowMessage",0)//??
         };
 
         public List<DStringItem> DStringItems = new List<DStringItem>();
@@ -370,34 +371,26 @@ namespace SSELex.SkyrimManage
         {
             bool IsNativeFunction = false;
 
-            var Details = DStringItems[Offset].TranslationScoreDetails;
-
-            void AddIfNotExists(string defLine, string reason, double value)
-            {
-                if (!Details.Any(d => d.DefLine == defLine && d.Reason == reason && d.Value == value))
-                {
-                    Details.Add(new TranslationScoreDetail(defLine, reason, value));
-                }
-            }
+            var ScorePtr = DStringItems[Offset].TranslationScoreDetails;
 
             int GetIndex = FindParameterPosition(SourceLine, "\"" + SourceStr + "\"");
             DStringItems[Offset].Feature += "[" + GetIndex.ToString() + "]";
 
             if (IsSafeParam(FunctionName, GetIndex))
             {
-                AddIfNotExists(SourceLine, $"Detected safe function '{FunctionName}'", 20);
+                AddScore(ref ScorePtr, SourceLine, $"Detected safe function '{FunctionName}'", 20);
                 IsNativeFunction = true;
             }
 
             if (SafePapyrusFuncs.Contains(FunctionName))
             {
-                AddIfNotExists(SourceLine, $"Detected safe function '{FunctionName}'", 10);
+                AddScore(ref ScorePtr, SourceLine, $"Detected safe function '{FunctionName}'", 10);
                 IsNativeFunction = true;
             }
 
             if (DangerPapyrusFuncs.Contains(FunctionName))
             {
-                AddIfNotExists(SourceLine, $"Detected danger function '{FunctionName}'", -20);
+                AddScore(ref ScorePtr, SourceLine, $"Detected danger function '{FunctionName}'", -20);
                 IsNativeFunction = true;
             }
 
@@ -405,14 +398,14 @@ namespace SSELex.SkyrimManage
             {
                 if (UserDefinedSafeFuncs.Contains(FunctionName))
                 {
-                    AddIfNotExists(SourceLine, $"Determined safe function by name '{FunctionName}'", 5);
+                    AddScore(ref ScorePtr, SourceLine, $"Determined safe function by name '{FunctionName}'", 5);
                 }
                 else
                 {
                     string lower = FunctionName.ToLower();
                     if (lower.StartsWith("is") || lower.StartsWith("get") || lower.StartsWith("set"))
                     {
-                        AddIfNotExists(SourceLine, $"Function '{FunctionName}' may be related to state check or key-value access (e.g., get/set/is). Translation may alter logic.", -20);
+                        AddScore(ref ScorePtr, SourceLine, $"Function '{FunctionName}' may be related to state check or key-value access (e.g., get/set/is). Translation may alter logic.", -20);
                     }
                     else
                     {
@@ -430,7 +423,7 @@ namespace SSELex.SkyrimManage
             return AlreadyAdded;
         }
 
-        private static readonly HashSet<string> ValidExtensions = new HashSet<string>()
+        private static readonly HashSet<string> ValidExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
         ".dsd", ".txt", ".json", ".esl", ".esm", ".esp", ".pex",".dds"
         };
@@ -441,7 +434,178 @@ namespace SSELex.SkyrimManage
                 return false;
 
             string Ext = Path.GetExtension(Input);
-            return !string.IsNullOrEmpty(Ext) && ValidExtensions.Contains(Ext.ToLower());
+            return !string.IsNullOrEmpty(Ext) && ValidExtensions.Contains(Ext);
+        }
+
+        public static bool CheckSingleOccurrence(string Str, string Find)
+        {
+            if (string.IsNullOrEmpty(Str) || string.IsNullOrEmpty(Find))
+                return false;
+
+            if (Find.Length > Str.Length)
+                return false;
+
+            int Count = 0;
+            int StartIndex = 0;
+            StringComparison ComparisonType = StringComparison.OrdinalIgnoreCase;
+
+            while (true)
+            {
+                int Index = Str.IndexOf(Find, StartIndex, ComparisonType);
+
+                if (Index == -1)
+                {
+                    break;
+                }
+
+                Count++;
+
+                if (Count > 1)
+                {
+                    return false;
+                }
+
+                StartIndex = Index + Find.Length;
+
+                if (StartIndex + Find.Length > Str.Length)
+                {
+                    break;
+                }
+            }
+
+            if (Count == 1)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static string ReverseString(string Input)
+        {
+            if (string.IsNullOrEmpty(Input))
+                return Input;
+
+            char[] Chars = Input.ToCharArray();
+            Array.Reverse(Chars);
+            return new string(Chars);
+        }
+
+        public bool GetIfSelfFuncName(string Line, string SourceStr, ref string FunctionName, ref int ParamIndex)
+        {
+            //Line = "if(xx(\"AA\",1))"; SourceStr = "AA";
+            //Line = "if xx(\"AA\",1)"; SourceStr = "AA";
+            //Line = "if aa(xx(\"AA\",1))"; SourceStr = "AA";
+            //Line = "if(( aa(xx(\"AA\",1))"; SourceStr = "AA";
+            //Line = "if 1 == print(\"AA\")"; SourceStr = "AA";
+
+            int Index = 0;
+            string FormatSource = "\"" + SourceStr + "\"";
+            if (CheckSingleOccurrence(Line, FormatSource))
+            {
+                bool IfOrFuncEnd = false;
+                string MergeStr = "";
+                int GetStartIndex = Line.IndexOf(FormatSource);
+
+                if (GetStartIndex > 0)
+                {
+                    for (int i = GetStartIndex; i > 0; i--)
+                    {
+                        string GetChar = Line.Substring(i - 1, 1);
+
+                        if (GetChar == "," && !IfOrFuncEnd)
+                        {
+                            Index++;
+                        }
+
+                        if (GetChar == "(" && !IfOrFuncEnd)
+                        {
+                            IfOrFuncEnd = true;
+                        }
+                        else
+                        if (IfOrFuncEnd)
+                        {
+                            if (GetChar.Equals("("))
+                            {
+                                if (!MergeStr.ToLower().Contains("if "))
+                                {
+                                    FunctionName = MergeStr;
+                                    break;
+                                }
+                            }
+                            else
+                            if (GetChar.Equals("!"))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            if (GetChar.Equals("&"))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            if (GetChar.Equals("|"))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            if (GetChar.Equals("="))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            {
+                                MergeStr += GetChar;
+                            }
+                        }
+                    }
+                }
+
+                MergeStr = ReverseString(MergeStr);
+                FunctionName = ReverseString(FunctionName);
+
+                if (MergeStr.StartsWith("if "))
+                {
+                    MergeStr = MergeStr.Substring("if ".Length);
+
+                    if (FunctionName == string.Empty && MergeStr.Length > 0)
+                    {
+                        FunctionName = MergeStr;
+                    }
+                }
+
+                if (FunctionName.Length > 0)
+                {
+                    if (FunctionName.StartsWith("Self."))
+                    {
+                        FunctionName = FunctionName.Substring("Self.".Length);
+                    }
+                    if (FunctionName.StartsWith("This."))
+                    {
+                        FunctionName = FunctionName.Substring("This.".Length);
+                    }
+
+                    FunctionName = FunctionName.Trim();
+
+                    ParamIndex = Index;
+
+                    return true;
+                }
+
+                return false;
+            }
+            return false;
+        }
+
+        public void AddScore(ref List<TranslationScoreDetail> Scores, string Line, string Reason, double Value)
+        {
+            if (!Scores.Any(E => E.DefLine == Line && E.Reason == Reason && E.Value == Value))
+            {
+                Scores.Add(new TranslationScoreDetail(Line, Reason, Value));
+            }
         }
 
         public Dictionary<string, int> FuncIndex = new Dictionary<string, int>();
@@ -539,6 +703,19 @@ namespace SSELex.SkyrimManage
                         //Is IF
                         DStringItems[i].Feature += "Is IF>";
                         DStringItems[i].ItemType = DStringItemType.IfCondition;
+
+                        string IfSelfFuncName = "";
+                        int IfSelfFuncParamIndex = -1;
+                        if (GetIfSelfFuncName(FormattedLine, DStringItems[i].Str, ref IfSelfFuncName, ref IfSelfFuncParamIndex))
+                        {
+                            if (IsSafeParam(IfSelfFuncName, IfSelfFuncParamIndex))
+                            {
+                                DStringItems[i].Feature += "IFSelfFunc_" + IfSelfFuncName + "(" + IfSelfFuncParamIndex + ")" + ">";
+                                AddScore(ref DStringItems[i].TranslationScoreDetails, SourceLine, $"Detected safe function '{IfSelfFuncName}'", 20);
+                                continue;
+                            }
+                        }
+
                         string IfVar = MatchIfCondition(FormattedLine);
 
                         var Result = ConditionHelper.FindVariableOrMethodForString(SourceLine, DStringItems[i].Str);
@@ -749,7 +926,10 @@ namespace SSELex.SkyrimManage
 
                 // Add Unique Variable Names Only
                 if (!Result.Contains(Name))
-                    Result.Add(Name);
+                {
+                    if (Name.ToLower() != "self")
+                        Result.Add(Name);
+                }
             }
 
             return Result;
