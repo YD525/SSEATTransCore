@@ -343,6 +343,8 @@ namespace PhoenixEngine.EngineManagement
             {
                 Save();
             }
+
+            EngineConfig.LMModel = "(Auto)";
         }
 
         #endregion
