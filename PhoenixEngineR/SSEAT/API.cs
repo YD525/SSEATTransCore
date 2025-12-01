@@ -141,10 +141,17 @@ namespace PhoenixEngineR.SSEAT
         {
             if (Engine.From != Languages.Null && Engine.To != Languages.Null)
             {
-                return Engine.Start(true);
+                Engine.SkipWordAnalysis(true);
+                Engine.Start();
+
+                return 1;
             }
 
             return 0;
+        }
+        public int EndBatchTranslation()
+        {
+            return Engine.End();
         }
         public int ControlBatchTranslationState(int State)
         {
