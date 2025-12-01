@@ -93,18 +93,20 @@ CREATE TABLE [LocalTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From LocalTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
-                if (NTable.Rows.Count > 0)
+                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                if (NTable.Count > 0)
                 {
-                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    for (int i = 0; i < NTable.Count; i++)
                     {
+                        var Row = NTable[i];
+
                         CloudTranslationItems.Add(new CloudTranslationItem(
-                            NTable.Rows[i]["FileUniqueKey"],
-                            NTable.Rows[i]["Key"],
-                            NTable.Rows[i]["To"],
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
-                           ));
+                            Row["FileUniqueKey"],
+                            Row["Key"],
+                            Row["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                        ));
                     }
                 }
 
@@ -134,7 +136,26 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static bool DeleteCacheByResult(string FileUniqueKey, string ResultText, Languages TargetLanguage)
+        public static bool DeleteCacheBySource(int FileUniqueKey, string Source, Languages TargetLanguage)
+        {
+            try
+            {
+                string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Source] = '{1}' And [To] = {2}";
+
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SqlSafeCodec.Encode(Source), (int)TargetLanguage));
+
+                if (State != 0)
+                {
+                    return true;
+                }
+
+                return false;
+
+            }
+            catch { return false; }
+        }
+
+        public static bool DeleteCacheByResult(int FileUniqueKey, string ResultText, Languages TargetLanguage)
         {
             try
             {
