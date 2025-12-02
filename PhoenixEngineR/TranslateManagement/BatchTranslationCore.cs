@@ -33,15 +33,15 @@ namespace PhoenixEngineR.TranslateManage
         public Languages From = Languages.Auto;
         public Languages To = Languages.Auto;
 
-        public TranslationUnit() { }
-
         private CancellationTokenSource TransThreadToken;
 
-        public bool CanTrans()
+        public TranslationUnit() { }
+
+        public bool CanTrans(int State)
         {
             if (DelegateHelper.SetTranslationUnitCallBack != null)
             {
-                return DelegateHelper.SetTranslationUnitCallBack(this);
+                return DelegateHelper.SetTranslationUnitCallBack(this, State);
             }
 
             return true;
@@ -49,7 +49,7 @@ namespace PhoenixEngineR.TranslateManage
 
         public void StartWork(BatchTranslationCore Source)
         {
-            if (!CanTrans())
+            if (!CanTrans(0))
             {
                 WorkEnd = 2;
                 return;
@@ -85,7 +85,7 @@ namespace PhoenixEngineR.TranslateManage
                 var Token = TransThreadToken.Token;
                 try
                 {
-                    NextGet:
+                NextGet:
 
                     Token.ThrowIfCancellationRequested();
 
@@ -93,7 +93,7 @@ namespace PhoenixEngineR.TranslateManage
                     {
                         bool CanSleep = true;
 
-                        if (!CanTrans())
+                        if (!CanTrans(1))
                         {
                             WorkEnd = 2;
                             return;
@@ -102,13 +102,13 @@ namespace PhoenixEngineR.TranslateManage
                         var GetResult = Translator.QuickTrans(this, ref CanSleep);
                         if (GetResult.Trim().Length > 0)
                         {
-                            if (!CanTrans())
+                            TransText = GetResult.Trim();
+
+                            if (!CanTrans(2))
                             {
                                 WorkEnd = 2;
                                 return;
                             }
-
-                            TransText = GetResult.Trim();
 
                             lock (Translator.TransDataLocker)
                             {
@@ -182,7 +182,7 @@ namespace PhoenixEngineR.TranslateManage
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To,double Score)
+        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText, string AIParam, Languages From, Languages To, double Score)
         {
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
@@ -283,7 +283,7 @@ namespace PhoenixEngineR.TranslateManage
             // Compute Cumulative Similarity
             for (int I = 0; I < N; I++)
             {
-                var TokenSetA = new HashSet<string>(TokensCache[I]);
+                var TokenSetA = TokensCache[I].ToHashSet();
                 var RelatedIndices = new HashSet<int>();
                 foreach (var Token in TokenSetA)
                 {
@@ -329,7 +329,7 @@ namespace PhoenixEngineR.TranslateManage
             lock (TranslatedAddLocker)
             {
                 UnitsTranslated.Enqueue(Item);
-                TranslatorBridge.SetCloudTransData(Item.Key,Item.SourceText,Item.TransText);
+                TranslatorBridge.SetCloudTransData(Item.Key, Item.SourceText, Item.TransText);
                 TranslatedKeys.Add(Item.Key);
             }
         }
@@ -457,7 +457,7 @@ namespace PhoenixEngineR.TranslateManage
                     if (!SkipWordAnalysis)
                     {
                         MarkLeadersAndSortHighPerfAccumulate(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
-                    }               
+                    }
 
                     if (ExitAny)
                     {
@@ -478,7 +478,7 @@ namespace PhoenixEngineR.TranslateManage
                         {
                             try
                             {
-                                NextFind:
+                            NextFind:
 
                                 ThreadUsage.CurrentThreads = CurrentTrds;
                                 ThreadUsage.MaxThreads = EngineConfig.MaxThreadCount;
@@ -505,7 +505,7 @@ namespace PhoenixEngineR.TranslateManage
                                         goto Next;
                                     }
 
-                                    Next:
+                                Next:
 
                                     if (CurrentTrds > EngineConfig.MaxThreadCount * EngineConfig.ThrottleRatio)
                                     {
@@ -634,7 +634,7 @@ namespace PhoenixEngineR.TranslateManage
         {
             IsStop = true;
         }
-       
+
         public void SetDuplicateSource(string Source)
         {
             IEnumerable<TranslationUnit> AllUnits = UnitsToTranslate.Concat(UnitsLeaderToTranslate);
@@ -660,34 +660,35 @@ namespace PhoenixEngineR.TranslateManage
 
         public TranslationUnit DequeueTranslated(out bool IsEnd)
         {
-            lock (UnitsTranslatedLocker)
+            try
             {
-                if (UnitsTranslated.Count == 0)
+                lock (UnitsTranslatedLocker)
                 {
-                    if (this.WorkState == 3 && GetWorkCount() == 0)
+                    if (UnitsTranslated.Count > 0)
                     {
-                        IsEnd = true;
-                        return null;
-                    }
-                    else
-                    {
+                        var Item = UnitsTranslated.Dequeue();
+
+                        if (!string.IsNullOrWhiteSpace(Item.TransText))
+                        {
+                            IsEnd = false;
+                            return Item;
+                        }
+
                         IsEnd = false;
                         return null;
                     }
-                }
 
-                IsEnd = false;
+                    bool NoMoreWork = (this.WorkState == 3 && GetWorkCount() == 0);
 
-                var GetResult = UnitsTranslated.Dequeue();
+                    IsEnd = NoMoreWork;
 
-                if (GetResult.TransText.Trim().Length > 0)
-                {
-                    return GetResult;
-                }
-                else
-                {
                     return null;
                 }
+            }
+            catch
+            {
+                IsEnd = false;
+                return null;
             }
         }
     }

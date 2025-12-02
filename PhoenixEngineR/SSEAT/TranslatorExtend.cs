@@ -42,12 +42,19 @@ namespace PhoenixEngineR.SSEAT
         }
 
         /// <summary>
-        /// Here is a callback function that gets the object being translated and whether translation is allowed. True allows, false cancels.
+        /// This is used to receive any entry state change event.
         /// </summary>
-        /// <param name="Item"></param>
+        /// <param name="Item">Translation Unit</param>
+        /// <param name="State">
+        /// 0 = is picked up by the thread.
+        /// 1 = Initiating translation.
+        /// 2 = Obtain translation results
+        /// </param>
         /// <returns></returns>
-        public static bool TranslationUnitStartWorkCall(TranslationUnit Item)
+        public static bool TranslationUnitStartWorkCall(TranslationUnit Item,int State)
         {
+            //You can return false at any stage to interrupt the translation. This callback method can be used to check the quality of the translation;
+            //if the translation is set to state 2, the translation information will be lost and not entered into the database.
             return true;
         }
 
