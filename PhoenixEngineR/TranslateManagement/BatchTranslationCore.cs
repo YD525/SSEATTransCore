@@ -85,7 +85,7 @@ namespace PhoenixEngineR.TranslateManage
                 var Token = TransThreadToken.Token;
                 try
                 {
-                NextGet:
+                    NextGet:
 
                     Token.ThrowIfCancellationRequested();
 
@@ -95,6 +95,7 @@ namespace PhoenixEngineR.TranslateManage
 
                         if (!CanTrans(1))
                         {
+                            this.Transing = false;
                             WorkEnd = 2;
                             return;
                         }
@@ -106,6 +107,7 @@ namespace PhoenixEngineR.TranslateManage
 
                             if (!CanTrans(2))
                             {
+                                this.Transing = false;
                                 WorkEnd = 2;
                                 return;
                             }
