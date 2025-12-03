@@ -53,8 +53,6 @@ namespace PhoenixEngineR.SSEAT
         /// <returns></returns>
         public static bool TranslationUnitStartWorkCall(TranslationUnit Item,int State)
         {
-            //You can return false at any stage to interrupt the translation. This callback method can be used to check the quality of the translation;
-            //if the translation is set to state 2, the translation information will be lost and not entered into the database.
             return true;
         }
 
