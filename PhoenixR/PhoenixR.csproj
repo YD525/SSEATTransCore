@@ -62,9 +62,9 @@
     <Compile Include="LanguageManagement\LanguageHelper.cs" />
     <Compile Include="SSEAT\API.cs" />
     <Compile Include="ConvertManagement\ConvertHelper.cs" />
-    <Compile Include="EngineManagement\PhoenixR.cs" />
-    <Compile Include="EngineManagement\PhoenixRConfig.cs" />
-    <Compile Include="EngineManagement\PapyrusHeurCore.cs" />
+    <Compile Include="PhoenixManagement\PhoenixR.cs" />
+    <Compile Include="PhoenixManagement\PhoenixRConfig.cs" />
+    <Compile Include="PhoenixManagement\PapyrusHeurCore.cs" />
     <Compile Include="PlatformManagement\AIPrompt.cs" />
     <Compile Include="PlatformManagement\LocalAI\LMStudio.cs" />
     <Compile Include="PlatformManagement\LocalAI\LocalAIJson.cs" />

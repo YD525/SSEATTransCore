@@ -9,11 +9,11 @@ namespace PhoenixEngineR.SSEAT
 {
     public class API
     {
-        private PexReader PexReader = null;
+        public Dictionary<string, PexReader> MutiPexReader = new Dictionary<string, PexReader>();
         public API()
         {
             PhoenixR.Init();
-            PexReader = new PexReader();
+            MutiPexReader.Clear();
 
             string SetCachePath = Bridge.GetFullPath(@"\Cache");
             if (!Directory.Exists(SetCachePath))
@@ -33,11 +33,6 @@ namespace PhoenixEngineR.SSEAT
 
         public void SetApiKey(string ApiKey, string AIModel, int EnableState, int IsFreeDeepL, int LocalAIPort)
         {
-            bool FreeDeepLEnable = false;
-            if (IsFreeDeepL == 1)
-            {
-                FreeDeepLEnable = true;
-            }
             bool Enable = false;
             if (EnableState == 1)
             {
@@ -57,11 +52,11 @@ namespace PhoenixEngineR.SSEAT
                         }
                         if (AIModel.Length > 0)
                         {
-                            PhoenixRConfig.LMModel = AIModel;
+                            PhoenixRConfig.LMModel = "(Auto)";
                         }
                         //EngineConfig.LMModel = "google/gemma-3-12b";
                     }
-                break;
+                    break;
             }
 
             PhoenixRConfig.Save();
@@ -81,7 +76,7 @@ namespace PhoenixEngineR.SSEAT
         /// </summary>
         /// <param name="Source"></param>
         /// <returns></returns>
-        public string LM_Translate(string Source, string FromLang,string ToLang,bool UseAIMemory)
+        public string LM_Translate(string Source, string FromLang, string ToLang, bool UseAIMemory)
         {
             Languages From = LanguageHelper.FromLanguageCode(FromLang);
 
@@ -92,11 +87,11 @@ namespace PhoenixEngineR.SSEAT
                 LanguageHelper.FromLanguageCode(ToLang),
                 PhoenixRConfig.ContextEnable,
                 PhoenixRConfig.ContextLimit,
-                "","");
+                "", "");
 
             if (PhoenixRConfig.ContextEnable)
             {
-                PhoenixR.AIMemory.AddTranslation(From,Source,GetResult);
+                PhoenixR.AIMemory.AddTranslation(From, Source, GetResult);
             }
 
             return GetResult;
@@ -116,10 +111,14 @@ namespace PhoenixEngineR.SSEAT
 
             PhoenixRConfig.Save();
         }
-       
+
         #endregion
 
         #region Papyrus Read Write
+        /// <summary>
+        /// Download Missing Tool
+        /// </summary>
+        /// <returns></returns>
         public int DownLoadAndInstallChampollion()
         {
             bool State = true;
@@ -140,39 +139,195 @@ namespace PhoenixEngineR.SSEAT
             return 0;
         }
 
-        private string LastSetInputPath = "";
+
+        /// <summary>
+        /// Use thread locks,Supports multi-threaded calls.
+        /// </summary>
+        public object WriteLock = new object();
+        /// <summary>
+        /// Modify the record specified in Pex using Key(ID).
+        /// </summary>
+        /// <param name="Key"></param>
+        /// <param name="Value"></param>
+        public void SetCache(string Key, string Value)
+        {
+            lock (WriteLock)
+            {
+                try
+                {
+                    if (PhoenixR.TransData.ContainsKey(Key))
+                    {
+                        PhoenixR.TransData[Key] = Value;
+                    }
+                    else
+                    {
+                        PhoenixR.TransData.Add(Key, Value);
+                    }
+                }
+                catch { }
+            }
+        }
+
+       
+        public object PexReaderLock = new object();
+        /// <summary>
+        /// Support read muti pex file
+        /// </summary>
+        public string MutiReadPexFile(string InputPath)
+        {
+            lock (PexReaderLock)
+            {
+                List<StringParam> StringParams = new List<StringParam>();
+                if (MutiPexReader.ContainsKey(InputPath))
+                {
+                    if (MutiPexReader[InputPath].Strings != null)
+                        StringParams.AddRange(MutiPexReader[InputPath].Strings);
+                }
+                else
+                {
+                    try
+                    {
+                        PexReader NewPexReader = new PexReader();
+                        NewPexReader.LoadPexFile(InputPath);
+
+                        if (NewPexReader.Strings != null)
+                        {
+                            if (NewPexReader.Strings.Count > 0)
+                            {
+                                StringParams = NewPexReader.Strings;
+                                MutiPexReader.Add(InputPath, NewPexReader);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        return Bridge.GetJson(Bridge.Return<List<StringParam>>(-1, "", new List<StringParam>()));
+                    }
+                }
+
+                if (StringParams.Count > 0)
+                {
+                    return Bridge.GetJson(Bridge.Return<List<StringParam>>(1, "", StringParams));
+                }
+                else
+                {
+                    return Bridge.GetJson(Bridge.Return<List<StringParam>>(0, "", new List<StringParam>()));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Apply change to target file
+        /// </summary>
+        /// <param name="InputPath"></param>
+        /// <returns></returns>
+        public int MutiSavePexFile(string InputPath)
+        {
+            lock (PexReaderLock)
+            {
+                bool SaveState = false;
+
+                try
+                {
+                    if (MutiPexReader.ContainsKey(InputPath))
+                    {
+                        var GetReader = MutiPexReader[InputPath];
+                        if (GetReader.SavePexFile(InputPath))
+                        {
+                            SaveState = true;
+                            GetReader.Close();
+                        }
+
+                        MutiPexReader.Remove(InputPath);
+                    }
+                }
+                catch { }
+
+                if (SaveState)
+                {
+                    return 1;
+                }
+
+                return -1;
+            }
+        }
+
+        /// <summary>
+        /// Return Opened Pex Count
+        /// </summary>
+        /// <returns></returns>
+        public int GetPexReaderCount()
+        {
+            return MutiPexReader.Count;
+        }
+      
+        /// <summary>
+        /// Current Pex Path
+        /// </summary>
+        public string LastOpenPexFilePath = "";
+        public PexReader SinglePexReader = new PexReader();
+
+        /// <summary>
+        /// Open Pex File (Single)
+        /// </summary>
+        /// <param name="InputPath"></param>
+        /// <returns></returns>
         public string ReadPexFile(string InputPath)
         {
             try
             {
-                LastSetInputPath = InputPath;
-                PexReader?.LoadPexFile(InputPath);
-                return Bridge.GetJson(Bridge.Return<List<StringParam>>(1, "", PexReader.Strings));
+                SinglePexReader.LoadPexFile(InputPath);
             }
             catch
             {
                 return Bridge.GetJson(Bridge.Return<List<StringParam>>(-1, "", new List<StringParam>()));
             }
+
+            if (SinglePexReader.Strings != null)
+            {
+                if (SinglePexReader.Strings.Count > 0)
+                {
+                    return Bridge.GetJson(Bridge.Return<List<StringParam>>(1, "", SinglePexReader.Strings));
+                }
+            }
+
+            return Bridge.GetJson(Bridge.Return<List<StringParam>>(0, "", new List<StringParam>()));
         }
+
+        /// <summary>
+        /// Save Current Pex File (Single)
+        /// </summary>
+        /// <returns></returns>
         public int SavePexFile()
         {
-            if (File.Exists(LastSetInputPath) && LastSetInputPath.Length > 0)
+            if (LastOpenPexFilePath.Length == 0)
             {
-                try
+                return 0;
+            }
+            if (File.Exists(LastOpenPexFilePath))
+            {
+                return 0;
+            }
+
+            bool SaveState = false;
+
+            try
+            {
+                if (SinglePexReader.SavePexFile(LastOpenPexFilePath))
                 {
-                    PexReader.SavePexFile(LastSetInputPath);
-                    LastSetInputPath = string.Empty;
-                    return 1;
+                    SaveState = true;
+                    SinglePexReader.Close();
                 }
-                catch
-                {
-                    return -1;
-                }
+            }
+            catch { }
+
+            if (SaveState)
+            {
+                return 1;
             }
 
             return 0;
         }
-
         #endregion
 
     }
