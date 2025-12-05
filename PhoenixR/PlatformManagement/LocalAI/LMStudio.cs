@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngineR.LanguageManagement;
@@ -11,17 +14,69 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 {
     public class LMStudio
     {
-        public OpenAIResponse CallAI(string Msg,ref string Recv)
+        public string GetCurrentModel()
         {
+            PhoenixRConfig.LMModel = GetCurrentModelName();
+            PhoenixRConfig.Save();
+
+            return PhoenixRConfig.LMModel;
+        }
+        public OpenAIResponse CallAI(string Msg, ref string Recv)
+        {
+            if (PhoenixRConfig.LMModel == string.Empty)
+            {
+                return new OpenAIResponse();
+            }
+
             int GetCount = Msg.Length;
             OpenAIItem NOpenAIItem = new OpenAIItem(PhoenixRConfig.LMModel);
             NOpenAIItem.store = true;
             NOpenAIItem.messages.Add(new OpenAIMessage("user", Msg));
-            var GetResult = CallAI(NOpenAIItem,ref Recv);
+            var GetResult = CallAI(NOpenAIItem, ref Recv);
             return GetResult;
         }
 
-        public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
+        public string GetCurrentModelName()
+        {
+            // Construct the URL for the request
+            string GenUrl = PhoenixRConfig.LMHost + ":" + PhoenixRConfig.LMPort + "/v1/models";
+
+            WebHeaderCollection Headers = new WebHeaderCollection();
+            HttpItem Http = new HttpItem()
+            {
+                URL = GenUrl,
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+                Method = "Get",
+                Header = Headers,
+                Accept = "*/*",
+                Postdata = "",
+                Cookie = "",
+                Timeout = 7000,
+                ContentType = "application/json",
+                //ProxyIp = ProxyCenter.GlobalProxyIP // Uncomment if a proxy is needed
+            };
+
+            try
+            {
+                string GetResult = new HttpHelper().GetHtml(Http).Html;
+                JObject Obj = JObject.Parse(GetResult);
+
+                JArray Models = (JArray)Obj["data"];
+                if (Models != null && Models.Count > 0)
+                {
+                    string ID = (string)Models[0]["id"];
+                    return ID ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting current model: {ex.Message}");
+                return string.Empty;
+            }
+
+            return string.Empty;
+        }
+        public OpenAIResponse CallAI(OpenAIItem Item, ref string Recv)
         {
             string GenUrl = PhoenixRConfig.LMHost + ":" + PhoenixRConfig.LMPort + "/v1/chat/completions";
             string GetJson = JsonConvert.SerializeObject(Item);
@@ -36,8 +91,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 Accept = "*/*",
                 Postdata = GetJson,
                 Cookie = "",
-                ContentType = "application/json"
-                //Timeout = DeFine.GlobalRequestTimeOut
+                ContentType = "application/json",
                 //ProxyIp = ProxyCenter.GlobalProxyIP
             };
             try
@@ -59,7 +113,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             }
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(List<string> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam,string Type)
+        public string QuickTrans(List<string> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, string Type)
         {
             List<string> Related = new List<string>();
 
@@ -73,11 +127,11 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 AIParam = AIParam + "\n" + PhoenixRConfig.UserCustomAIPrompt;
             }
 
-            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang,ToLang,TransSource,Type, Related,CustomWords, AIParam);
-            
+            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
+
             string Send = GetTransSource;
             string Recv = "";
-            var GetResult = CallAI(Send,ref Recv);
+            var GetResult = CallAI(Send, ref Recv);
 
             if (GetResult != null)
             {
