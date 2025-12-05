@@ -72,6 +72,14 @@ namespace PhoenixEngineR.SSEAT
         #region Translation
 
         /// <summary>
+        /// Retrieve the models that are already mounted in the LM.
+        /// </summary>
+        public string GetMountedModel()
+        {
+            return new LMStudio().GetCurrentModel();
+        }
+
+        /// <summary>
         /// LM_Translate
         /// </summary>
         /// <param name="Source"></param>
